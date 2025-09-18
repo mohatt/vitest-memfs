@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": ["src/*"],
+      "@test/*": ["./test/*"]
+    },
+    "types": ["node"],
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "noImplicitReturns": true,
+    "noUnusedParameters": true,
+    "strictBindCallApply": true,
+    "stripInternal": true
+  },
+  "include": ["src", "test"]
+}
