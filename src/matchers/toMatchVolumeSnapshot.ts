@@ -24,57 +24,58 @@ declare module 'vitest' {
   }
 }
 
-const matcherName = 'toMatchVolumeSnapshot'
-
-export default createMatcher(matcherName, async function (received, snapshotDir, options) {
-  if (this.isNot) {
-    throw new Error(`${matcherName} cannot be used with "not"`)
-  }
-
-  const { currentTestName, snapshotState, utils } = this
-  const snapshotDirPath = path.join(path.dirname(snapshotState.snapshotPath), snapshotDir)
-  const matchSnapshot = (passed: boolean) => {
-    snapshotState.match({
-      testId: currentTestName,
-      testName: currentTestName,
-      received: passed ? 'match' : 'mismatch',
-      isInline: false,
-      rawSnapshot: {
-        file: snapshotDirPath,
-        content: 'match',
-        readonly: true,
-      },
-    })
-    return passed
-  }
-
-  if (!(received instanceof Volume)) {
-    return {
-      pass: matchSnapshot(false),
-      message: () => `expected ${utils.printReceived(received)} to be a memfs Volume instance`,
-      actual: received,
-      expected: new (class Volume {})(),
+export default createMatcher(
+  'toMatchVolumeSnapshot',
+  async function (received, snapshotDir, options) {
+    if (this.isNot) {
+      throw new Error(`toMatchVolumeSnapshot() cannot be used with "not"`)
     }
-  }
 
-  const fs = await getActualFS()
-  const updateSnapshot =
-    (snapshotState as any)._updateSnapshot === 'all' ||
-    (await fs
-      .access(snapshotDirPath)
-      .then(() => false)
-      .catch(() => true))
+    const { currentTestName, snapshotState, utils } = this
+    const snapshotDirPath = path.join(path.dirname(snapshotState.snapshotPath), snapshotDir)
+    const matchSnapshot = (passed: boolean) => {
+      snapshotState.match({
+        testId: currentTestName,
+        testName: currentTestName,
+        received: passed ? 'match' : 'mismatch',
+        isInline: false,
+        rawSnapshot: {
+          file: snapshotDirPath,
+          content: 'match',
+          readonly: true,
+        },
+      })
+      return passed
+    }
 
-  const prefix = options?.prefix ?? undefined
-  if (updateSnapshot) {
-    await writeVolumeToDir(received, snapshotDirPath, { prefix, clear: true })
-    return { pass: true, message: () => `updated snapshot at ${snapshotDirPath}` }
-  }
+    if (!(received instanceof Volume)) {
+      return {
+        pass: matchSnapshot(false),
+        message: () => `expected ${utils.printReceived(received)} to be a memfs Volume instance`,
+        actual: received,
+        expected: new (class Volume {})(),
+      }
+    }
 
-  const expectedMap = await readDirToMap(snapshotDirPath, prefix)
-  const receivedMap = volumeToMap(received, prefix)
+    const fs = await getActualFS()
+    const updateSnapshot =
+      (snapshotState as any)._updateSnapshot === 'all' ||
+      (await fs
+        .access(snapshotDirPath)
+        .then(() => false)
+        .catch(() => true))
 
-  const result = compareVolumeMaps(receivedMap, expectedMap, options)
-  matchSnapshot(result.pass)
-  return result
-})
+    const prefix = options?.prefix ?? undefined
+    if (updateSnapshot) {
+      await writeVolumeToDir(received, snapshotDirPath, { prefix, clear: true })
+      return { pass: true, message: () => `updated snapshot at ${snapshotDirPath}` }
+    }
+
+    const expectedMap = await readDirToMap(snapshotDirPath, prefix)
+    const receivedMap = volumeToMap(received, prefix)
+
+    const result = compareVolumeMaps(receivedMap, expectedMap, options)
+    matchSnapshot(result.pass)
+    return result
+  },
+)

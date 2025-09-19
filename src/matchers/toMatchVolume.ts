@@ -15,9 +15,7 @@ declare module 'vitest' {
   }
 }
 
-const matcherName = 'toMatchVolume'
-
-export default createMatcher(matcherName, function (received, expected, options) {
+export default createMatcher('toMatchVolume', function (received, expected, options) {
   const { utils } = this
   if (!(received instanceof Volume)) {
     return {
@@ -30,7 +28,7 @@ export default createMatcher(matcherName, function (received, expected, options)
 
   if (!(expected instanceof Volume)) {
     throw new TypeError(
-      `You must provide a memfs Volume instance to ${utils.matcherHint(matcherName)}, not '${typeof expected}'.`,
+      `You must provide a memfs Volume instance to ${utils.matcherHint('toMatchVolume')}, not '${typeof expected}'.`,
     )
   }
 
