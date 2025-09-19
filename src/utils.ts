@@ -1,34 +1,44 @@
+import path from 'node:path'
+import { createHash } from 'node:crypto'
 import { vi, ExpectStatic } from 'vitest'
 import type { Volume } from 'memfs'
-import path from 'path'
 import { isText } from 'istextorbinary'
 import { toSnapshotSync, SnapshotNode } from 'memfs/lib/snapshot'
 
 // Posix specific pathing for memfs operations
 const pathPosix = path.posix
 
+export type VolumeMapEntry =
+  | { type: 'file'; data: Buffer }
+  | { type: 'dir' }
+  | { type: 'symlink'; target: string }
+
+export type VolumeMap = Record<string, VolumeMapEntry>
+
 /**
  * Get a filename -> Buffer map from current volume.
  */
 export function volumeToMap(volume: Volume, targetDirPath = '/') {
   const snapshot = toSnapshotSync({ fs: volume, path: targetDirPath })
-  const result: Record<string, Buffer> = {}
+  const result: VolumeMap = {}
 
   function walk(node: SnapshotNode, curr: string) {
     if (!node) return
+    const [type, meta, third] = node
 
-    const [type, _meta, third] = node
-    // Handle SnapshotNodeType.Folder
     if (type === 0) {
-      for (const [name, child] of Object.entries(third)) {
-        walk(child, pathPosix.join(curr, name))
+      // folder
+      const children = Object.keys(third)
+      if (children.length === 0) {
+        result[curr] = { type: 'dir' } // empty folder
       }
-      // Handle SnapshotNodeType.File
+      for (const name of children) {
+        walk(third[name], pathPosix.join(curr, name))
+      }
     } else if (type === 1) {
-      result[curr] = Buffer.from(third)
-      // Handle SnapshotNodeType.Symlink
+      result[curr] = { type: 'file', data: Buffer.from(third) }
     } else if (type === 2) {
-      // optional: handle symlinks if needed
+      result[curr] = { type: 'symlink', target: meta.target }
     }
   }
 
@@ -58,8 +68,8 @@ export interface VolumeCompareOptions {
  * @param options extra options
  */
 export function compareVolumeMaps(
-  received: Record<string, Buffer>,
-  expected: Record<string, Buffer>,
+  received: VolumeMap,
+  expected: VolumeMap,
   options?: VolumeCompareOptions,
 ): VolumeCompareResult {
   const { negated, listMatch } = options ?? {}
@@ -104,17 +114,46 @@ export function compareVolumeMaps(
   for (const file of filesToCheck) {
     const exp = expected[file]
     const act = received[file]
-    const encoding = isText(file, exp) ? 'utf8' : 'base64'
-    const expStr = exp.toString(encoding)
-    const actStr = act.toString(encoding)
-
-    const same = expStr === actStr
-    if (!same) {
+    if (exp.type !== act.type) {
       return {
         pass: false,
-        message: () => `${encoding === 'base64' ? 'binary ' : ''}mismatch in file \`${file}\``,
-        actual: actStr,
-        expected: expStr,
+        message: () => `path type mismatch at \`${file}\``,
+        actual: act.type,
+        expected: exp.type,
+      }
+    }
+    if (exp.type === 'file') {
+      if (isText(file, exp.data)) {
+        const expStr = exp.data.toString('utf8')
+        const actStr = act.data.toString('utf8')
+
+        if (expStr !== actStr) {
+          return {
+            pass: false,
+            message: () => `mismatch in file \`${file}\``,
+            actual: actStr,
+            expected: expStr,
+          }
+        }
+      } else {
+        // binary files
+        if (!exp.data.equals(act.data)) {
+          return {
+            pass: false,
+            message: () => `binary mismatch in file \`${file}\``,
+            actual: makeBinaryPreview(act.data),
+            expected: makeBinaryPreview(exp.data),
+          }
+        }
+      }
+    } else if (exp?.type === 'symlink') {
+      if (exp.target !== act.target) {
+        return {
+          pass: false,
+          message: () => `symlink target mismatch at \`${file}\``,
+          actual: act.target,
+          expected: exp.target,
+        }
       }
     }
   }
@@ -145,37 +184,64 @@ export async function writeVolumeToDir(
     await fsp.rm(targetDirPath, { recursive: true, force: true })
   }
 
-  for (const filePath of Object.keys(map)) {
+  for (const [filePath, entry] of Object.entries(map)) {
     // strip prefix
-    let rel = filePath.slice(realPrefix.length)
+    const rel = filePath.slice(realPrefix.length)
     if (!rel) continue // skip if it’s exactly the prefix (highly unlikely)
 
     const abs = path.join(targetDirPath, rel)
-    await fsp.mkdir(path.dirname(abs), { recursive: true })
-    await fsp.writeFile(abs, map[filePath])
+
+    if (entry.type === 'file') {
+      await fsp.mkdir(path.dirname(abs), { recursive: true })
+      await fsp.writeFile(abs, entry.data)
+    } else if (entry.type === 'dir') {
+      await fsp.mkdir(abs, { recursive: true })
+    } else if (entry.type === 'symlink') {
+      await fsp.mkdir(path.dirname(abs), { recursive: true })
+      await fsp.symlink(entry.target, abs)
+    }
   }
 }
 
 export async function readDirToMap(targetDirPath: string, prefix?: string) {
   const fsp = await getActualFS()
-  const result: Record<string, Buffer> = {}
+  const result: VolumeMap = {}
 
   async function walk(subDir: string) {
     const entries = await fsp.readdir(subDir, { withFileTypes: true })
+    if (entries.length === 0) {
+      const rel = pathPosix.relative(targetDirPath, subDir)
+      result[pathPosix.join('/', prefix ?? '', rel)] = { type: 'dir' }
+    }
     for (const e of entries) {
       const abs = path.join(subDir, e.name)
+      const rel = pathPosix.relative(targetDirPath, abs)
+      const key = pathPosix.join('/', prefix ?? '', rel)
+
       if (e.isDirectory()) {
         await walk(abs)
       } else if (e.isFile()) {
-        const rel = pathPosix.relative(targetDirPath, abs)
-        // apply prefix
-        result[pathPosix.join('/', prefix ?? '', rel)] = await fsp.readFile(abs)
+        result[key] = { type: 'file', data: await fsp.readFile(abs) }
+      } else if (e.isSymbolicLink()) {
+        result[key] = { type: 'symlink', target: await fsp.readlink(abs) }
       }
     }
   }
 
   await walk(targetDirPath)
   return result
+}
+
+function makeBinaryPreview(buf: Buffer): object {
+  const hash = createHash('sha1').update(buf).digest('hex')
+  const base64 = buf.toString('base64')
+  const preview = base64.length > 120 ? base64.slice(0, 60) + '...' + base64.slice(-60) : base64
+
+  return new (class Binary {
+    size = buf.length
+    sha1 = hash
+    preview = preview
+  })()
 }
 
 export async function getActualFS() {

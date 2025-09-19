@@ -1,8 +1,9 @@
 import { Volume } from 'memfs'
 import { compareVolumeMaps, createMatcher, VolumeCompareListMatch, volumeToMap } from '@/utils'
 
-interface VolumeMatcherOptions {
+export interface VolumeMatcherOptions {
   listMatch?: VolumeCompareListMatch
+  prefix?: string
 }
 
 declare module 'vitest' {
@@ -40,8 +41,9 @@ export default createMatcher(matcherName, function (received, expected, options)
     }
   }
 
-  const receivedMap = volumeToMap(received)
-  const expectedMap = volumeToMap(expected)
+  const prefix = options?.prefix ?? undefined
+  const receivedMap = volumeToMap(received, prefix)
+  const expectedMap = volumeToMap(expected, prefix)
 
   return compareVolumeMaps(receivedMap, expectedMap, options)
 })

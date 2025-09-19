@@ -10,7 +10,7 @@ import {
   writeVolumeToDir,
 } from '@/utils'
 
-interface VolumeSnapshotMatcherOptions {
+export interface VolumeSnapshotMatcherOptions {
   prefix?: string
   listMatch?: VolumeCompareListMatch
 }
