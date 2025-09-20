@@ -1,0 +1,168 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [existing] > result 1`] = `
+{
+  "actual": Buffer {
+    "length": 100000,
+    "preview": "u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=...u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=",
+    "sha1": "84a8811d7cd58ccbe862c1f94a00366c12440816",
+  },
+  "expected": Buffer {
+    "length": 100000,
+    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+    "sha1": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
+  },
+  "message": "binary mismatch in file \`/data.bin\`",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snapshot 1`] = `
+{
+  "/.gitignore": [
+    "file",
+    "",
+  ],
+  "/bin.dat": [
+    "file",
+    "3q2+7w==",
+  ],
+  "/src/index.js": [
+    "file",
+    "Ly8gaGk=",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > result 1`] = `
+{
+  "message": "updated snapshot at different-files",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir match' [existing] > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir vs missing dir' [existing] > result 1`] = `
+{
+  "actual": [
+    "/empty",
+  ],
+  "expected": [
+    "/",
+  ],
+  "message": "directory structure didn’t match",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > disk-snapshot 1`] = `
+{
+  "/empty": null,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > result 1`] = `
+{
+  "message": "updated snapshot at empty-dir",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [existing] > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > disk-snapshot 1`] = `
+{
+  "/": null,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > result 1`] = `
+{
+  "message": "updated snapshot at empty-volume",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > disk-snapshot 1`] = `
+{
+  "/foo.txt": [
+    "file",
+    "aGk=",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > result 1`] = `
+{
+  "message": "updated snapshot at empty-dir",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'ignores extra files' [existing] > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'ignores missing files' [existing] > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > disk-snapshot 1`] = `"Error: ENOENT"`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] = `
+{
+  "actual": "invalid",
+  "expected": Volume {},
+  "message": "expected received("invalid") to be a memfs Volume instance",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option mismatch' [existing] > result 1`] = `
+{
+  "actual": "hiz",
+  "expected": "hi",
+  "message": "mismatch in file \`/src/foo.txt\`",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [existing] > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > disk-snapshot 1`] = `
+{
+  "/foo.txt": [
+    "file",
+    "aGk=",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > result 1`] = `
+{
+  "message": "updated snapshot at prefix-option",
+  "pass": true,
+}
+`;

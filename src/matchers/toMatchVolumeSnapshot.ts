@@ -68,7 +68,7 @@ export default createMatcher(
     const prefix = options?.prefix ?? undefined
     if (updateSnapshot) {
       await writeVolumeToDir(received, snapshotDirPath, { prefix, clear: true })
-      return { pass: true, message: () => `updated snapshot at ${snapshotDirPath}` }
+      return { pass: true, message: () => `updated snapshot at ${snapshotDir}` }
     }
 
     const expectedMap = await readDirToMap(snapshotDirPath, prefix)

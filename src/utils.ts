@@ -22,7 +22,7 @@ export interface VolumeMap {
  * Get a filename -> Buffer map from current volume.
  */
 export function volumeToMap(volume: Volume, targetDirPath = '/') {
-  const snapshot = toSnapshotSync({ fs: volume, path: targetDirPath, separator: '/' })
+  const rootNode = toSnapshotSync({ fs: volume, path: targetDirPath, separator: '/' })
   const map: VolumeMap = Object.create(null)
 
   function walk(node: SnapshotNode, curr: string) {
@@ -45,7 +45,7 @@ export function volumeToMap(volume: Volume, targetDirPath = '/') {
     }
   }
 
-  walk(snapshot, targetDirPath)
+  walk(rootNode, targetDirPath)
   return map
 }
 
@@ -147,8 +147,8 @@ export function compareVolumeMaps(
           return {
             pass: false,
             message: () => `binary mismatch in file \`${file}\``,
-            actual: makeBinaryPreview(actBuff),
-            expected: makeBinaryPreview(expBuff),
+            actual: makeBufferPreview(actBuff),
+            expected: makeBufferPreview(expBuff),
           }
         }
       }
@@ -197,8 +197,6 @@ export async function writeVolumeToDir(
   for (const [filePath, entry] of Object.entries(map)) {
     // strip prefix
     const rel = filePath.slice(realPrefix.length)
-    if (!rel) continue // skip if it’s exactly the prefix (highly unlikely)
-
     const abs = path.join(targetDirPath, rel)
 
     if (entry.type === 'file') {
@@ -242,12 +240,12 @@ export async function readDirToMap(targetDirPath: string, prefix?: string) {
   return map
 }
 
-function makeBinaryPreview(buf: Buffer, trim = 32): object {
+function makeBufferPreview(buf: Buffer, trim = 32): object {
   const hash = createHash('sha1').update(buf).digest('hex')
   const head = buf.subarray(0, trim).toString('base64')
   const tail = buf.subarray(buf.length - trim).toString('base64')
-  return new (class Binary {
-    size = buf.length
+  return new (class Buffer {
+    length = buf.length
     sha1 = hash
     preview = `${head}...${tail}`
   })()
