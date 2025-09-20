@@ -8,6 +8,10 @@ exports[`toMatchVolume() > integration > 'empty dir vs missing dir' 1`] = `[Erro
 
 exports[`toMatchVolume() > integration > 'extra file' 1`] = `[Error: directory structure didn’t match]`;
 
+exports[`toMatchVolume() > integration > 'invalid type (expected)' 1`] = `[TypeError: You must provide a memfs Volume instance to [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchVolume[2m([22m[32mexpected[39m[2m)[22m, not 'string'.]`;
+
+exports[`toMatchVolume() > integration > 'invalid type (received)' 1`] = `[Error: expected [31m"invalid"[39m to be a memfs Volume instance]`;
+
 exports[`toMatchVolume() > integration > 'large binary file mismatch' 1`] = `[Error: binary mismatch in file \`/big.bin\`]`;
 
 exports[`toMatchVolume() > integration > 'missing file' 1`] = `[Error: directory structure didn’t match]`;
@@ -25,15 +29,15 @@ exports[`toMatchVolume() > unit > 'binary files match' 1`] = `
 
 exports[`toMatchVolume() > unit > 'binary files mismatch' 1`] = `
 {
-  "actual": Binary {
-    "preview": "3q2+7w==",
+  "actual": Buffer {
+    "length": 4,
+    "preview": "3q2+7w==...3q2+7w==",
     "sha1": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
-    "size": 4,
   },
-  "expected": Binary {
-    "preview": "yv66vg==",
+  "expected": Buffer {
+    "length": 4,
+    "preview": "yv66vg==...yv66vg==",
     "sha1": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
-    "size": 4,
   },
   "message": "binary mismatch in file \`/bin.dat\`",
   "pass": false,
@@ -90,17 +94,28 @@ exports[`toMatchVolume() > unit > 'identical files' 1`] = `
 }
 `;
 
+exports[`toMatchVolume() > unit > 'invalid type (expected)' 1`] = `[TypeError: You must provide a memfs Volume instance to hint(toMatchVolume), not 'string'.]`;
+
+exports[`toMatchVolume() > unit > 'invalid type (received)' 1`] = `
+{
+  "actual": "invalid",
+  "expected": Volume {},
+  "message": "expected received("invalid") to be a memfs Volume instance",
+  "pass": false,
+}
+`;
+
 exports[`toMatchVolume() > unit > 'large binary file mismatch' 1`] = `
 {
-  "actual": Binary {
-    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
+  "actual": Buffer {
+    "length": 100000,
+    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
     "sha1": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
-    "size": 100000,
   },
-  "expected": Binary {
-    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
+  "expected": Buffer {
+    "length": 100000,
+    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
     "sha1": "814bf2767d4339019bf26a4d3a35066ad9c0f6c7",
-    "size": 100000,
   },
   "message": "binary mismatch in file \`/big.bin\`",
   "pass": false,

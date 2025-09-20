@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import type { MatcherState } from '@vitest/expect'
-import { Volume, DirectoryJSON, vol } from 'memfs'
+import { Volume, vol } from 'memfs'
+import { makeTests, makeVol, VolumeInput } from '@test/util'
 import toMatchVolume, { VolumeMatcherOptions } from '../toMatchVolume'
-
-type VolumeInput = DirectoryJSON | (() => Volume)
 
 interface TestCase {
   name: string
@@ -12,11 +10,9 @@ interface TestCase {
   opts?: VolumeMatcherOptions
   pass: boolean
   not?: boolean
-  skip?: boolean
-  only?: boolean
 }
 
-const cases: TestCase[] = [
+const cases = makeTests<TestCase>([
   {
     name: 'identical files',
     left: { '/foo.txt': 'hi' },
@@ -37,6 +33,18 @@ const cases: TestCase[] = [
     name: 'content mismatch',
     left: { '/foo.txt': 'hello' },
     right: { '/foo.txt': 'world' },
+    pass: false,
+  },
+  {
+    name: 'invalid type (received)',
+    left: () => 'invalid' as any,
+    right: () => vol,
+    pass: false,
+  },
+  {
+    name: 'invalid type (expected)',
+    left: () => vol,
+    right: () => 'invalid' as any,
     pass: false,
   },
   {
@@ -164,79 +172,62 @@ const cases: TestCase[] = [
     pass: true, // passes because with `.not` we want them NOT to match
     not: true,
   },
-]
+])
 
 describe('toMatchVolume()', () => {
-  const mockState = {
-    utils: {
-      printReceived: (received) => `received(${JSON.stringify(received)})`,
-      matcherHint: (matcherName: string) => `hint(${matcherName})`,
-    },
-  } as MatcherState
-
-  const makeVol = (input: VolumeInput) =>
-    typeof input === 'function' ? input() : Volume.fromJSON(input)
-
-  // invokes the matcher directly to get the return value snapshot
-  async function testRunnerUnit({ left, right, opts, not }: TestCase) {
-    const leftVol = makeVol(left)
-    const rightVol = makeVol(right)
-    const invoke = async () => {
-      let snap: any
-      try {
-        const result = await toMatchVolume.call(
-          { ...mockState, isNot: not },
-          leftVol,
-          rightVol,
-          opts,
-        )
-        snap = {
-          ...result,
-          message: result.message(),
-        }
-      } catch (e) {
-        snap = e
-      }
-      return snap
-    }
-    expect(await invoke()).toMatchSnapshot()
-  }
-
-  function testRunnerInteg({ left, right, pass, opts, not }: TestCase) {
-    const leftVol = makeVol(left)
-    const rightVol = makeVol(right)
-
-    if (not) {
-      if (pass) {
-        expect(leftVol).not.toMatchVolume(rightVol, opts)
-      } else {
-        expect(() =>
-          expect(leftVol).not.toMatchVolume(rightVol, opts),
-        ).toThrowErrorMatchingSnapshot()
-      }
-    } else {
-      if (pass) {
-        expect(leftVol).toMatchVolume(rightVol, opts)
-      } else {
-        expect(() => expect(leftVol).toMatchVolume(rightVol, opts)).toThrowErrorMatchingSnapshot()
-      }
-    }
-  }
-
-  // only > skip > normal
-  const onlyCases = cases.filter(({ only }) => only)
-  const skipCases = cases.filter(({ skip }) => skip)
-  const normalCases = cases.filter(({ only, skip }) => !skip && !only)
-
   describe('unit', () => {
-    it.each(normalCases)('$name', testRunnerUnit)
-    it.only.each(onlyCases)('$name', testRunnerUnit)
-    it.skip.each(skipCases)('$name', testRunnerUnit)
+    const mockState = {
+      utils: {
+        printReceived: (received) => `received(${JSON.stringify(received)})`,
+        matcherHint: (matcherName: string) => `hint(${matcherName})`,
+      },
+    }
+
+    // invokes the matcher directly to get the return value snapshot
+    async function testRunnerUnit({ left, right, opts, not }: TestCase) {
+      const leftVol = makeVol(left)
+      const rightVol = makeVol(right)
+      const invoke = async () => {
+        try {
+          const matcher = toMatchVolume.bind({ ...(mockState as any), isNot: not })
+          const result = await matcher(leftVol, rightVol, opts)
+          return { ...result, message: result.message() }
+        } catch (e) {
+          return e
+        }
+      }
+      expect(await invoke()).toMatchSnapshot()
+    }
+
+    it.each(cases.normal)('$name', testRunnerUnit)
+    it.only.each(cases.only)('$name', testRunnerUnit)
+    it.skip.each(cases.skip)('$name', testRunnerUnit)
   })
 
   describe('integration', () => {
-    it.each(normalCases)('$name', testRunnerInteg)
-    it.only.each(onlyCases)('$name', testRunnerInteg)
-    it.skip.each(skipCases)('$name', testRunnerInteg)
+    function testRunnerInteg({ left, right, pass, opts, not }: TestCase) {
+      const leftVol = makeVol(left)
+      const rightVol = makeVol(right)
+
+      if (not) {
+        if (pass) {
+          expect(leftVol).not.toMatchVolume(rightVol, opts)
+        } else {
+          expect(() =>
+            expect(leftVol).not.toMatchVolume(rightVol, opts),
+          ).toThrowErrorMatchingSnapshot()
+        }
+      } else {
+        if (pass) {
+          expect(leftVol).toMatchVolume(rightVol, opts)
+        } else {
+          expect(() => expect(leftVol).toMatchVolume(rightVol, opts)).toThrowErrorMatchingSnapshot()
+        }
+      }
+    }
+
+    it.each(cases.normal)('$name', testRunnerInteg)
+    it.only.each(cases.only)('$name', testRunnerInteg)
+    it.skip.each(cases.skip)('$name', testRunnerInteg)
   })
 })
