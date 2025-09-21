@@ -1,14 +1,8 @@
 import path from 'path'
 import { Volume } from 'memfs'
-import {
-  compareVolumeMaps,
-  createMatcher,
-  getActualFS,
-  readDirToMap,
-  VolumeCompareOptions,
-  volumeToMap,
-  writeVolumeToDir,
-} from '@/utils'
+import { createMatcher, getActualFS } from '@/util/common.js'
+import { readDirToMap, volumeToMap, writeVolumeToDir } from '@/util/volume.js'
+import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
 
 export interface VolumeSnapshotMatcherOptions extends VolumeCompareOptions {
   prefix?: string

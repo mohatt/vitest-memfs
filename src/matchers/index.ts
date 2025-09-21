@@ -1,5 +1,5 @@
-export { default as toMatchVolume, type VolumeMatcherOptions } from './toMatchVolume'
+export { default as toMatchVolume, type VolumeMatcherOptions } from './toMatchVolume.js'
 export {
   default as toMatchVolumeSnapshot,
   type VolumeSnapshotMatcherOptions,
-} from './toMatchVolumeSnapshot'
+} from './toMatchVolumeSnapshot.js'

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`toMatchVolume() > integration > 'binary files mismatch' 1`] = `[Error: binary mismatch in file \`/bin.dat\`]`;
+exports[`toMatchVolume() > integration > 'binary files mismatch' 1`] = `[Error: mismatch in file \`/bin.dat\`]`;
 
 exports[`toMatchVolume() > integration > 'content mismatch' 1`] = `[Error: mismatch in file \`/foo.txt\`]`;
 
@@ -12,7 +12,7 @@ exports[`toMatchVolume() > integration > 'invalid type (expected)' 1`] = `[TypeE
 
 exports[`toMatchVolume() > integration > 'invalid type (received)' 1`] = `[Error: expected [31m"invalid"[39m to be a memfs Volume instance]`;
 
-exports[`toMatchVolume() > integration > 'large binary file mismatch' 1`] = `[Error: binary mismatch in file \`/big.bin\`]`;
+exports[`toMatchVolume() > integration > 'large binary file mismatch' 1`] = `[Error: mismatch in file \`/big.bin\`]`;
 
 exports[`toMatchVolume() > integration > 'missing file' 1`] = `[Error: directory structure didn’t match]`;
 
@@ -20,7 +20,7 @@ exports[`toMatchVolume() > integration > 'not: identical files' 1`] = `[Error: v
 
 exports[`toMatchVolume() > integration > 'respects ignore-extra option (mismatch)' 1`] = `[Error: volume is missing 1 expected file(s)]`;
 
-exports[`toMatchVolume() > integration > 'respects ignore-missing option' 1`] = `[Error: volume has 1 unexpected file(s)]`;
+exports[`toMatchVolume() > integration > 'respects ignore-missing option (mismatch)' 1`] = `[Error: volume has 1 unexpected file(s)]`;
 
 exports[`toMatchVolume() > integration > 'symlink target mismatch' 1`] = `[Error: symlink target mismatch at \`/link.txt\`]`;
 
@@ -33,25 +33,29 @@ exports[`toMatchVolume() > unit > 'binary files match' 1`] = `
 
 exports[`toMatchVolume() > unit > 'binary files mismatch' 1`] = `
 {
-  "actual": Buffer {
+  "actual": BinaryFile {
+    "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
     "length": 4,
     "preview": "3q2+7w==...3q2+7w==",
-    "sha1": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
   },
-  "expected": Buffer {
+  "expected": BinaryFile {
+    "hash": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
     "length": 4,
     "preview": "yv66vg==...yv66vg==",
-    "sha1": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
   },
-  "message": "binary mismatch in file \`/bin.dat\`",
+  "message": "mismatch in file \`/bin.dat\`",
   "pass": false,
 }
 `;
 
 exports[`toMatchVolume() > unit > 'content mismatch' 1`] = `
 {
-  "actual": "hello",
-  "expected": "world",
+  "actual": TextFile {
+    "data": "hello",
+  },
+  "expected": TextFile {
+    "data": "world",
+  },
   "message": "mismatch in file \`/foo.txt\`",
   "pass": false,
 }
@@ -111,17 +115,17 @@ exports[`toMatchVolume() > unit > 'invalid type (received)' 1`] = `
 
 exports[`toMatchVolume() > unit > 'large binary file mismatch' 1`] = `
 {
-  "actual": Buffer {
+  "actual": BinaryFile {
+    "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
     "length": 100000,
     "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
-    "sha1": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
   },
-  "expected": Buffer {
+  "expected": BinaryFile {
+    "hash": "814bf2767d4339019bf26a4d3a35066ad9c0f6c7",
     "length": 100000,
     "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
-    "sha1": "814bf2767d4339019bf26a4d3a35066ad9c0f6c7",
   },
-  "message": "binary mismatch in file \`/big.bin\`",
+  "message": "mismatch in file \`/big.bin\`",
   "pass": false,
 }
 `;
@@ -142,8 +146,12 @@ exports[`toMatchVolume() > unit > 'missing file' 1`] = `
 
 exports[`toMatchVolume() > unit > 'not: content mismatch' 1`] = `
 {
-  "actual": "hello",
-  "expected": "world",
+  "actual": TextFile {
+    "data": "hello",
+  },
+  "expected": TextFile {
+    "data": "world",
+  },
   "message": "mismatch in file \`/foo.txt\`",
   "pass": false,
 }
@@ -191,14 +199,7 @@ exports[`toMatchVolume() > unit > 'respects ignore-extra option' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects ignore-missing option' 1`] = `
-{
-  "message": "volumes matched",
-  "pass": true,
-}
-`;
-
-exports[`toMatchVolume() > unit > 'respects ignore-missing option' 2`] = `
+exports[`toMatchVolume() > unit > 'respects ignore-missing option (mismatch)' 1`] = `
 {
   "actual": [
     "/extra.txt",
@@ -209,6 +210,13 @@ exports[`toMatchVolume() > unit > 'respects ignore-missing option' 2`] = `
   ],
   "message": "volume has 1 unexpected file(s)",
   "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore-missing option' 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
 }
 `;
 
@@ -228,8 +236,12 @@ exports[`toMatchVolume() > unit > 'same ref (singleton vol)' 1`] = `
 
 exports[`toMatchVolume() > unit > 'symlink target mismatch' 1`] = `
 {
-  "actual": "/target1.txt",
-  "expected": "/target2.txt",
+  "actual": Symlink {
+    "target": "/target1.txt",
+  },
+  "expected": Symlink {
+    "target": "/target2.txt",
+  },
   "message": "symlink target mismatch at \`/link.txt\`",
   "pass": false,
 }

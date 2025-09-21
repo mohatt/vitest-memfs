@@ -1,5 +1,7 @@
 import { Volume } from 'memfs'
-import { compareVolumeMaps, createMatcher, VolumeCompareOptions, volumeToMap } from '@/utils'
+import { createMatcher } from '@/util/common.js'
+import { volumeToMap } from '@/util/volume.js'
+import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
 
 export interface VolumeMatcherOptions extends VolumeCompareOptions {
   prefix?: string

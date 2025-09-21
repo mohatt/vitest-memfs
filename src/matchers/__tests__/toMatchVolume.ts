@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { Volume, vol } from 'memfs'
-import { makeTests, makeVol, VolumeInput } from '@test/util'
-import toMatchVolume, { VolumeMatcherOptions } from '../toMatchVolume'
+import { makeTests, makeVol, VolumeInput } from '@test/util.js'
+import toMatchVolume, { VolumeMatcherOptions } from '../toMatchVolume.js'
 
 interface TestCase {
   name: string
@@ -81,7 +81,7 @@ const cases = makeTests<TestCase>([
     opts: { listMatch: 'ignore-missing' },
   },
   {
-    name: 'respects ignore-missing option',
+    name: 'respects ignore-missing option (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: false,

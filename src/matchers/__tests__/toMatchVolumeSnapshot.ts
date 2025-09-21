@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import path from 'path'
 import fsx from 'fs-extra'
-import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util'
-import toMatchVolumeSnapshot, { VolumeSnapshotMatcherOptions } from '../toMatchVolumeSnapshot'
+import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util.js'
+import toMatchVolumeSnapshot, { VolumeSnapshotMatcherOptions } from '../toMatchVolumeSnapshot.js'
 
 interface TestCase {
   name: string
@@ -188,7 +188,7 @@ describe('toMatchVolumeSnapshot()', () => {
         '/foo.txt': 'hi',
         '/bin/data.bin': Buffer.alloc(100_000, 0xbb),
       })
-      expect(vol).toMatchVolumeSnapshot('test')
+      await expect(vol).toMatchVolumeSnapshot('test')
     })
 
     it('throws when used with not', async () => {

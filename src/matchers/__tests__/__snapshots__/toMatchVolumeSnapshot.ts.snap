@@ -2,17 +2,17 @@
 
 exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [existing] > result 1`] = `
 {
-  "actual": Buffer {
+  "actual": BinaryFile {
+    "hash": "84a8811d7cd58ccbe862c1f94a00366c12440816",
     "length": 100000,
     "preview": "u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=...u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=",
-    "sha1": "84a8811d7cd58ccbe862c1f94a00366c12440816",
   },
-  "expected": Buffer {
+  "expected": BinaryFile {
+    "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
     "length": 100000,
     "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
-    "sha1": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
   },
-  "message": "binary mismatch in file \`/data.bin\`",
+  "message": "mismatch in file \`/data.bin\`",
   "pass": false,
 }
 `;
@@ -165,8 +165,12 @@ exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] 
 
 exports[`toMatchVolumeSnapshot() > unit > 'prefix option mismatch' [existing] > result 1`] = `
 {
-  "actual": "hiz",
-  "expected": "hi",
+  "actual": TextFile {
+    "data": "hiz",
+  },
+  "expected": TextFile {
+    "data": "hi",
+  },
   "message": "mismatch in file \`/src/foo.txt\`",
   "pass": false,
 }
