@@ -1,18 +1,16 @@
 import path from 'node:path'
 import { createHash } from 'node:crypto'
-import { vi } from 'vitest'
-import type { MatchersObject } from '@vitest/expect'
+import { vi, expect } from 'vitest'
 import type { Volume } from 'memfs'
 import { isText } from 'istextorbinary'
-import { toSnapshotSync, SnapshotNode } from 'memfs/lib/snapshot'
 
 // Posix specific pathing for memfs operations
 const pathPosix = path.posix
 
 export type VolumeMapEntry =
   | { type: 'file'; data: Buffer }
-  | { type: 'dir' }
   | { type: 'symlink'; target: string }
+  | { type: 'empty-dir' }
 
 export interface VolumeMap {
   [path: string]: VolumeMapEntry
@@ -22,30 +20,24 @@ export interface VolumeMap {
  * Get a filename -> Buffer map from current volume.
  */
 export function volumeToMap(volume: Volume, targetDirPath = '/') {
-  const rootNode = toSnapshotSync({ fs: volume, path: targetDirPath, separator: '/' })
   const map: VolumeMap = Object.create(null)
 
-  function walk(node: SnapshotNode, curr: string) {
-    if (!node) return
-    const [type, meta, third] = node
-
-    if (type === 0) {
-      // folder
-      const children = Object.keys(third)
-      if (children.length === 0) {
-        map[curr] = { type: 'dir' } // empty folder
+  function walk(curr: string) {
+    const stats = volume.lstatSync(curr)
+    if (stats.isDirectory()) {
+      const list = volume.readdirSync(curr) as string[]
+      if (list.length === 0) map[curr] = { type: 'empty-dir' }
+      for (const name of list) {
+        walk(path.posix.join(curr, name))
       }
-      for (const name of children) {
-        walk(third[name], pathPosix.join(curr, name))
-      }
-    } else if (type === 1) {
-      map[curr] = { type: 'file', data: Buffer.from(third) }
-    } else if (type === 2) {
-      map[curr] = { type: 'symlink', target: meta.target }
+    } else if (stats.isFile()) {
+      map[curr] = { type: 'file', data: volume.readFileSync(curr) as Buffer }
+    } else if (stats.isSymbolicLink()) {
+      map[curr] = { type: 'symlink', target: volume.readlinkSync(curr) as string }
     }
   }
 
-  walk(rootNode, targetDirPath)
+  walk(targetDirPath)
   return map
 }
 
@@ -80,34 +72,58 @@ export function compareVolumeMaps(
   const actualFiles = Object.keys(received).sort()
   const expectedFiles = Object.keys(expected).sort()
 
-  // check for file list match
-  let listMatchResult: boolean
-  let listMatchError: string
-  switch (listMatch) {
-    case 'ignore-extra':
-      listMatchResult = expectedFiles.every((f) => f in received)
-      listMatchError = 'volume is missing expected files'
-      break
+  let listMismatchResult: {
+    reason: string
+    actual: string[]
+    expected: string[]
+  } | null = null
 
-    case 'ignore-missing':
-      listMatchResult = actualFiles.every((f) => f in expected)
-      listMatchError = 'volume has unexpected extra files'
+  switch (listMatch) {
+    case 'ignore-extra': {
+      const missing = expectedFiles.filter((f) => !(f in received))
+      if (missing.length > 0) {
+        listMismatchResult = {
+          reason: `volume is missing ${missing.length} expected file(s)`,
+          actual: actualFiles.filter((f) => f in expected),
+          expected: expectedFiles,
+        }
+      }
       break
+    }
+
+    case 'ignore-missing': {
+      const extra = actualFiles.filter((f) => !(f in expected))
+      if (extra.length > 0) {
+        listMismatchResult = {
+          reason: `volume has ${extra.length} unexpected file(s)`,
+          actual: actualFiles,
+          expected: expectedFiles.filter((f) => f in received),
+        }
+      }
+      break
+    }
 
     case 'exact':
-    default:
-      listMatchError = 'directory structure didn’t match'
-      listMatchResult =
-        actualFiles.length === expectedFiles.length &&
-        actualFiles.every((f, i) => f === expectedFiles[i])
+    default: {
+      if (
+        actualFiles.length !== expectedFiles.length ||
+        !actualFiles.every((f, i) => f === expectedFiles[i])
+      ) {
+        listMismatchResult = {
+          reason: 'directory structure didn’t match',
+          actual: actualFiles,
+          expected: expectedFiles,
+        }
+      }
+    }
   }
 
-  if (!listMatchResult) {
+  if (listMismatchResult) {
     return {
       pass: false,
-      message: () => listMatchError,
-      actual: actualFiles,
-      expected: expectedFiles,
+      message: () => listMismatchResult.reason,
+      actual: listMismatchResult.actual,
+      expected: listMismatchResult.expected,
     }
   }
 
@@ -194,19 +210,19 @@ export async function writeVolumeToDir(
     await fsp.rm(targetDirPath, { recursive: true, force: true })
   }
 
-  for (const [filePath, entry] of Object.entries(map)) {
+  for (const [abs, entry] of Object.entries(map)) {
     // strip prefix
-    const rel = filePath.slice(realPrefix.length)
-    const abs = path.join(targetDirPath, rel)
+    const rel = abs.slice(realPrefix.length)
+    const targetPath = path.join(targetDirPath, rel)
 
     if (entry.type === 'file') {
-      await fsp.mkdir(path.dirname(abs), { recursive: true })
-      await fsp.writeFile(abs, entry.data)
-    } else if (entry.type === 'dir') {
-      await fsp.mkdir(abs, { recursive: true })
+      await fsp.mkdir(path.dirname(targetPath), { recursive: true })
+      await fsp.writeFile(targetPath, entry.data)
+    } else if (entry.type === 'empty-dir') {
+      await fsp.mkdir(targetPath, { recursive: true })
     } else if (entry.type === 'symlink') {
-      await fsp.mkdir(path.dirname(abs), { recursive: true })
-      await fsp.symlink(entry.target, abs)
+      await fsp.mkdir(path.dirname(targetPath), { recursive: true })
+      await fsp.symlink(entry.target, targetPath)
     }
   }
 }
@@ -219,18 +235,18 @@ export async function readDirToMap(targetDirPath: string, prefix?: string) {
     const entries = await fsp.readdir(subDir, { withFileTypes: true })
     if (entries.length === 0) {
       const rel = pathPosix.relative(targetDirPath, subDir)
-      map[pathPosix.join('/', prefix ?? '', rel)] = { type: 'dir' }
+      map[pathPosix.join('/', prefix ?? '', rel)] = { type: 'empty-dir' }
     }
-    for (const e of entries) {
-      const abs = path.join(subDir, e.name)
+    for (const entry of entries) {
+      const abs = path.join(subDir, entry.name)
       const rel = pathPosix.relative(targetDirPath, abs)
       const key = pathPosix.join('/', prefix ?? '', rel)
 
-      if (e.isDirectory()) {
+      if (entry.isDirectory()) {
         await walk(abs)
-      } else if (e.isFile()) {
+      } else if (entry.isFile()) {
         map[key] = { type: 'file', data: await fsp.readFile(abs) }
-      } else if (e.isSymbolicLink()) {
+      } else if (entry.isSymbolicLink()) {
         map[key] = { type: 'symlink', target: await fsp.readlink(abs) }
       }
     }
@@ -254,6 +270,8 @@ function makeBufferPreview(buf: Buffer, trim = 32): object {
 export async function getActualFS() {
   return vi.importActual<typeof import('fs/promises')>('fs/promises')
 }
+
+type MatchersObject = Parameters<(typeof expect)['extend']>[0]
 
 /**
  * Creates and returns a matcher function.

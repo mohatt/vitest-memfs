@@ -61,16 +61,30 @@ const cases = makeTests<TestCase>([
   },
   {
     name: 'respects ignore-extra option',
-    left: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
-    right: { '/foo.txt': 'hi' },
+    left: { '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' },
+    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: true,
+    opts: { listMatch: 'ignore-extra' },
+  },
+  {
+    name: 'respects ignore-extra option (mismatch)',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
+    pass: false,
     opts: { listMatch: 'ignore-extra' },
   },
   {
     name: 'respects ignore-missing option',
     left: { '/foo.txt': 'hi' },
-    right: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
+    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: true,
+    opts: { listMatch: 'ignore-missing' },
+  },
+  {
+    name: 'respects ignore-missing option',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
+    pass: false,
     opts: { listMatch: 'ignore-missing' },
   },
   {

@@ -94,10 +94,24 @@ const existingCases = makeTests<TestCase>([
     opts: { listMatch: 'ignore-extra' },
   },
   {
+    name: 'ignores extra files (mismatch)',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: 'foo-bar',
+    pass: false,
+    opts: { listMatch: 'ignore-extra' },
+  },
+  {
     name: 'ignores missing files',
     left: { '/foo.txt': 'hi' },
     right: 'foo-bar',
     pass: true,
+    opts: { listMatch: 'ignore-missing' },
+  },
+  {
+    name: 'ignores missing files (mismatch)',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: 'foo-bar',
+    pass: false,
     opts: { listMatch: 'ignore-missing' },
   },
   {

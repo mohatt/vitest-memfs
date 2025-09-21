@@ -110,10 +110,38 @@ exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > result 1`]
 }
 `;
 
+exports[`toMatchVolumeSnapshot() > unit > 'ignores extra files (mismatch)' [existing] > result 1`] = `
+{
+  "actual": [
+    "/foo.txt",
+  ],
+  "expected": [
+    "/bar.txt",
+    "/foo.txt",
+  ],
+  "message": "volume is missing 1 expected file(s)",
+  "pass": false,
+}
+`;
+
 exports[`toMatchVolumeSnapshot() > unit > 'ignores extra files' [existing] > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'ignores missing files (mismatch)' [existing] > result 1`] = `
+{
+  "actual": [
+    "/extra.txt",
+    "/foo.txt",
+  ],
+  "expected": [
+    "/foo.txt",
+  ],
+  "message": "volume has 1 unexpected file(s)",
+  "pass": false,
 }
 `;
 

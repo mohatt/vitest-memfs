@@ -1,15 +1,14 @@
 import { Volume } from 'memfs'
-import { compareVolumeMaps, createMatcher, VolumeCompareListMatch, volumeToMap } from '@/utils'
+import { compareVolumeMaps, createMatcher, VolumeCompareOptions, volumeToMap } from '@/utils'
 
-export interface VolumeMatcherOptions {
-  listMatch?: VolumeCompareListMatch
+export interface VolumeMatcherOptions extends VolumeCompareOptions {
   prefix?: string
 }
 
 declare module 'vitest' {
   interface Matchers<T = any> {
     /**
-     * Compare this memfs volume against another memfs volume.
+     * Assert that a memfs volume matches another volume.
      */
     toMatchVolume(expected: Volume, options?: VolumeMatcherOptions): T
   }

@@ -5,14 +5,13 @@ import {
   createMatcher,
   getActualFS,
   readDirToMap,
-  VolumeCompareListMatch,
+  VolumeCompareOptions,
   volumeToMap,
   writeVolumeToDir,
 } from '@/utils'
 
-export interface VolumeSnapshotMatcherOptions {
+export interface VolumeSnapshotMatcherOptions extends VolumeCompareOptions {
   prefix?: string
-  listMatch?: VolumeCompareListMatch
 }
 
 declare module 'vitest' {
@@ -20,7 +19,7 @@ declare module 'vitest' {
     /**
      * Assert that a memfs volume matches the snapshot directory.
      */
-    toMatchVolumeSnapshot(targetDir: string, options?: VolumeSnapshotMatcherOptions): Promise<T>
+    toMatchVolumeSnapshot(snapshotDir: string, options?: VolumeSnapshotMatcherOptions): Promise<T>
   }
 }
 

@@ -18,6 +18,10 @@ exports[`toMatchVolume() > integration > 'missing file' 1`] = `[Error: directory
 
 exports[`toMatchVolume() > integration > 'not: identical files' 1`] = `[Error: volumes matched]`;
 
+exports[`toMatchVolume() > integration > 'respects ignore-extra option (mismatch)' 1`] = `[Error: volume is missing 1 expected file(s)]`;
+
+exports[`toMatchVolume() > integration > 'respects ignore-missing option' 1`] = `[Error: volume has 1 unexpected file(s)]`;
+
 exports[`toMatchVolume() > integration > 'symlink target mismatch' 1`] = `[Error: symlink target mismatch at \`/link.txt\`]`;
 
 exports[`toMatchVolume() > unit > 'binary files match' 1`] = `
@@ -166,6 +170,20 @@ exports[`toMatchVolume() > unit > 'not: identical files' 1`] = `
 }
 `;
 
+exports[`toMatchVolume() > unit > 'respects ignore-extra option (mismatch)' 1`] = `
+{
+  "actual": [
+    "/foo.txt",
+  ],
+  "expected": [
+    "/bar.txt",
+    "/foo.txt",
+  ],
+  "message": "volume is missing 1 expected file(s)",
+  "pass": false,
+}
+`;
+
 exports[`toMatchVolume() > unit > 'respects ignore-extra option' 1`] = `
 {
   "message": "volumes matched",
@@ -177,6 +195,20 @@ exports[`toMatchVolume() > unit > 'respects ignore-missing option' 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore-missing option' 2`] = `
+{
+  "actual": [
+    "/extra.txt",
+    "/foo.txt",
+  ],
+  "expected": [
+    "/foo.txt",
+  ],
+  "message": "volume has 1 unexpected file(s)",
+  "pass": false,
 }
 `;
 
