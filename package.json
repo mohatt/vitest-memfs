@@ -1,10 +1,21 @@
 {
   "name": "vitest-memfs",
   "version": "1.0.0",
-  "description": "Custom vitest matchers for interacting with memfs.",
+  "description": "Custom vitest matchers for interacting with memfs",
   "keywords": [
+    "vitest",
+    "memfs",
+    "test",
+    "testing",
+    "mock",
+    "matchers",
     "fs",
-    "test"
+    "file",
+    "filesystem",
+    "file system",
+    "memory",
+    "virtual",
+    "in-memory"
   ],
   "homepage": "https://github.com/mohatt/vitest-memfs",
   "bugs": "https://github.com/mohatt/vitest-memfs/issues",
@@ -15,7 +26,8 @@
   "license": "MIT",
   "author": "Mohamed Elkholy <mohatt@pm.me>",
   "sideEffects": [
-    "./src/matchers/index.ts"
+    "./dist/setup.js",
+    "./dist/setup.cjs"
   ],
   "type": "module",
   "exports": {
@@ -23,6 +35,11 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
+    },
+    "./setup": {
+      "types": "./dist/setup.d.ts",
+      "require": "./dist/setup.cjs",
+      "import": "./dist/setup.js"
     },
     "./matchers": {
       "types": "./dist/matchers/index.d.ts",
@@ -33,6 +50,19 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "matchers": [
+        "./dist/matchers/index.d.ts"
+      ],
+      "setup": [
+        "./dist/setup.d.ts"
+      ],
+      "*": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
@@ -48,7 +78,7 @@
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "istextorbinary": "^9.5.0"
+    "istextorbinary": "^9.0.0"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
@@ -56,7 +86,6 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.19.17",
     "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/expect": "^3.2.4",
     "fs-extra": "^11.3.2",
     "memfs": "^4.25.0",
     "pkgroll": "^2.15.4",
@@ -72,6 +101,6 @@
     "vitest": "^3"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18"
   }
 }
