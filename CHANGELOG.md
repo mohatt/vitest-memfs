@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/mohatt/vitest-memfs/compare/v1.0.0...v1.0.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* **toMatchVolumeSnapshot:** respect Vitest's `updateSnapshot=none` ([5b5a079](https://github.com/mohatt/vitest-memfs/commit/5b5a0798fea3b1289e03b47c31f5963e99bddaaf))
+
 # 1.0.0 (2025-09-22)
 
 🚀 First release.
