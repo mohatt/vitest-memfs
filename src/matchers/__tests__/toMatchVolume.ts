@@ -130,6 +130,13 @@ const cases = makeTests<TestCase>([
     opts: { prefix: '/src' },
   },
   {
+    name: 'respects prefix option 2',
+    left: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
+    right: { '/src/foo.txt': 'hi' },
+    pass: true,
+    opts: { prefix: '/src' },
+  },
+  {
     name: 'binary files match',
     left: () => {
       const v = new Volume()

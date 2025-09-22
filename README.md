@@ -62,6 +62,15 @@ it('compares volumes', () => {
 
   expect(vol1).toMatchVolume(vol2) // ✅ passes
   expect(vol1).toMatchVolume({ '/foo.txt': 'world' }) // ❌ mismatch in file "/foo.txt"
+
+  // prefix
+  const vol3 = Volume.fromJSON({ '/foo.txt': 'hello', '/src/bar.txt': 'world' })
+  expect(vol3).toMatchVolume({ '/src/bar.txt': 'world' }, { prefix: '/src' })
+  // ✅ passes: only `/src/bar.txt` is compared
+
+  // listMatch: 'ignore-extra'
+  expect(vol3).toMatchVolume({ '/src/bar.txt': 'world' }, { listMatch: 'ignore-extra' })
+  // ✅ passes: ignore extra files in received volume
 })
 ```
 
@@ -77,6 +86,11 @@ import { Volume } from 'memfs'
 it('matches volume snapshot', () => {
   const vol = Volume.fromJSON({ '/foo.txt': 'hello' })
   expect(vol).toMatchVolumeSnapshot('foo-snap')
+
+  // prefix
+  const vol3 = Volume.fromJSON({ '/foo.txt': 'hello', '/src/bar.txt': 'world' })
+  expect(vol3).toMatchVolume('src-snap', { prefix: '/src' })
+  // only files under `/src` are persisted/compared
 })
 ```
 
