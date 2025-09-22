@@ -37,7 +37,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snaps
 
 exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > result 1`] = `
 {
-  "message": "updated snapshot at different-files",
+  "message": "created snapshot at different-files",
   "pass": true,
 }
 `;
@@ -70,7 +70,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > disk-snapshot 1`
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > result 1`] = `
 {
-  "message": "updated snapshot at empty-dir",
+  "message": "created snapshot at empty-dir",
   "pass": true,
 }
 `;
@@ -90,8 +90,17 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > disk-snapshot
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > result 1`] = `
 {
-  "message": "updated snapshot at empty-volume",
+  "message": "created snapshot at empty-volume",
   "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'force no update' [write] > disk-snapshot 1`] = `"Error: ENOENT"`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'force no update' [write] > result 1`] = `
+{
+  "message": "snapshot directory \`force-no-update\` does not exist",
+  "pass": false,
 }
 `;
 
@@ -107,6 +116,22 @@ exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > disk-snaps
 exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > result 1`] = `
 {
   "message": "updated snapshot at empty-dir",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > disk-snapshot 1`] = `
+{
+  "/foo.txt": [
+    "file",
+    "aGk=",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > result 1`] = `
+{
+  "message": "created snapshot at force-update",
   "pass": true,
 }
 `;
@@ -153,6 +178,21 @@ exports[`toMatchVolumeSnapshot() > unit > 'ignores missing files' [existing] > r
 }
 `;
 
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [existing] > disk-snapshot 1`] = `
+{
+  "/": null,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [existing] > result 1`] = `
+{
+  "actual": "invalid",
+  "expected": Volume {},
+  "message": "expected received("invalid") to be a memfs Volume instance",
+  "pass": false,
+}
+`;
+
 exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > disk-snapshot 1`] = `"Error: ENOENT"`;
 
 exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] = `
@@ -195,7 +235,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > disk-snapsho
 
 exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > result 1`] = `
 {
-  "message": "updated snapshot at prefix-option",
+  "message": "created snapshot at prefix-option",
   "pass": true,
 }
 `;

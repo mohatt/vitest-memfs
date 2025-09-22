@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, SnapshotUpdateState } from 'vitest'
 import path from 'path'
 import fsx from 'fs-extra'
 import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util.js'
@@ -9,7 +9,7 @@ interface TestCase {
   left: VolumeInput
   right?: string
   opts?: VolumeSnapshotMatcherOptions
-  update?: 'all' | 'new'
+  update?: SnapshotUpdateState
   pass: boolean
 }
 
@@ -40,6 +40,18 @@ const newCases = makeTests<TestCase>([
     pass: true,
   },
   {
+    name: 'force update',
+    left: { '/foo.txt': 'hi' },
+    update: 'all',
+    pass: true,
+  },
+  {
+    name: 'force no update',
+    left: { '/foo.txt': 'hi' },
+    update: 'none',
+    pass: false,
+  },
+  {
     name: 'prefix option',
     left: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
     opts: { prefix: '/src' },
@@ -53,6 +65,13 @@ const existingCases = makeTests<TestCase>([
     left: {},
     right: 'empty-vol',
     pass: true,
+  },
+  {
+    name: 'invalid volume',
+    left: () => 'invalid' as any,
+    right: 'empty-vol',
+    update: 'all',
+    pass: false,
   },
   {
     name: 'empty dir vs missing dir',
@@ -146,12 +165,15 @@ const existingCases = makeTests<TestCase>([
 
 describe('toMatchVolumeSnapshot()', () => {
   describe('unit', () => {
-    const mockState = (updateSnapshot: string) => ({
+    const mockState = (updateSnapshot: SnapshotUpdateState) => ({
       currentTestName: expect.getState().currentTestName,
       snapshotState: {
         _updateSnapshot: updateSnapshot,
         snapshotPath: path.join(__dirname, '__snapshots__', 'temp', 'xxx.snap'),
-        match: vi.fn(),
+        added: { increment: vi.fn() },
+        updated: { increment: vi.fn() },
+        matched: { increment: vi.fn() },
+        unmatched: { increment: vi.fn() },
       },
       utils: {
         printReceived: (received) => `received(${JSON.stringify(received)})`,
@@ -219,6 +241,13 @@ describe('toMatchVolumeSnapshot()', () => {
         '/bin/data.bin': Buffer.alloc(100_000, 0xbb),
       })
       await expect(vol).toMatchVolumeSnapshot('test')
+    })
+
+    it('throws when used without snapshot name', async () => {
+      const vol = makeVol({ '/foo.txt': 'hi' })
+      await expect(
+        () => expect(vol).toMatchVolumeSnapshot(null), //
+      ).rejects.toThrow(/must provide a snapshot directory name/)
     })
 
     it('throws when used with not', async () => {

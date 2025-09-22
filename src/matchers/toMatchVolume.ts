@@ -36,7 +36,7 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
     throw new TypeError(
       `You must provide a memfs Volume instance or plain JSON object to ${utils.matcherHint(
         'toMatchVolume',
-      )}, not '${typeof expected}'.`,
+      )}, not \`${typeof expected}\`.`,
     )
   }
 
