@@ -1,11 +1,15 @@
 # vitest-memfs
 
-[![][npm-img]][npm-url] [![][ci-img]][ci-url] [![][codecov-img]][codecov-url] [![][gatsby-img]][gatsby-url] [![][license-img]][license-url]
+[![][npm-img]][npm-url] [![][ci-img]][ci-url] [![][codecov-img]][codecov-url] [![][license-img]][license-url]
 
-Custom vitest matchers for interacting with memfs.
+Custom [Vitest](https://vitest.dev) matchers for working with [memfs](https://github.com/streamich/memfs).
+Useful when testing code that reads/writes to the filesystem without touching the real disk.
 
 - [Usage](#usage)
 - [Matchers](#matchers)
+  - [toMatchVolume](#toMatchVolume)
+  - [toMatchVolumeSnapshot](#toMatchVolumeSnapshot)
+  - [Options](#options)
 - [License](#license)
 
 ## Usage
@@ -16,10 +20,10 @@ Install with your favorite package manager:
 $ pnpm add -D vitest-memfs
 ```
 
-Add a setup file to your Vitest configuration:
+Add a setup file to your Vitest config:
 
 ```javascript
-// in your `vite.config.js`
+// `vite.config.js`
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -29,16 +33,75 @@ export default defineConfig({
 })
 ```
 
-Extends the built-in Vitest matchers with some or all matchers of `vitest-memfs` in your setup file:
+Then extend Vitest’s matchers in your setup file:
 
-```javascript
-// Use all matchers of `vitest-memfs`.
-import 'vitest-memfs/matchers'
+```typescript
+// tests-setup.ts
 
-// Use some matchers of `vitest-memfs`.
-import toMatchVolume from 'vitest-memfs/matchers/toMatchVolume'
+// Register all matchers
+import 'vitest-memfs/setup'
+
+// Or only the ones you need
+import { toMatchVolume } from 'vitest-memfs/matchers'
 expect.extend({ toMatchVolume })
 ```
+
+## Matchers
+
+### toMatchVolume
+
+Compare two `memfs` volumes (or a volume vs. JSON input).
+
+```typescript
+import { Volume } from 'memfs'
+
+it('compares volumes', () => {
+  const vol1 = Volume.fromJSON({ '/foo.txt': 'hello' })
+  const vol2 = Volume.fromJSON({ '/foo.txt': 'hello' })
+
+  expect(vol1).toMatchVolume(vol2) // ✅ passes
+  expect(vol1).toMatchVolume({ '/foo.txt': 'world' }) // ❌ mismatch in file "/foo.txt"
+})
+```
+
+### toMatchVolumeSnapshot
+
+Persist an entire `memfs` volume as a directory on disk and compare against it later.
+This works like Vitest’s `toMatchSnapshot`, but for filesystem trees.
+
+```typescript
+import { Volume } from 'memfs'
+
+it('matches volume snapshot', () => {
+  const vol = Volume.fromJSON({ '/foo.txt': 'hello' })
+  expect(vol).toMatchVolumeSnapshot('foo-snap')
+})
+```
+
+- On first run (or when using `-u`), a real directory is created under `__snapshots__/`.
+- On later runs, the volume is compared against that directory.
+
+### Options
+
+Both matchers support the same options:
+
+```typescript
+interface VolumeMatcherOptions {
+  prefix?: string
+  listMatch?: 'exact' | 'ignore-extra' | 'ignore-missing'
+  report?: 'first' | 'all'
+}
+```
+
+- **prefix**
+  - `subdirectory` → Limit comparisons to files under the given path (e.g. `/src`).
+- **listMatch**
+  - `exact` → directory contents must match exactly (default).
+  - `ignore-extra` → extra files in the received volume are ignored.
+  - `ignore-missing` → missing files in the received volume are ignored.
+- **report**
+  - `first` → stop on the first mismatch (default).
+  - `all` → collect all mismatches and show a combined diff.
 
 ## License
 
