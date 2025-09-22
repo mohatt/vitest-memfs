@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeAll } from 'vitest'
 import path from 'path'
 import fsx from 'fs-extra'
 import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util.js'
@@ -195,6 +195,13 @@ describe('toMatchVolumeSnapshot()', () => {
     async function testRunnerExisting(testCase: TestCase) {
       await runTest(testCase, true)
     }
+
+    beforeAll(async () => {
+      // make empty dir fixtures since they are not supported in git
+      const fixturesRoot = path.join(__dirname, '__fixtures__')
+      await fsx.emptyDir(path.join(fixturesRoot, 'empty-vol'))
+      await fsx.emptyDir(path.join(fixturesRoot, 'empty-dir', 'empty'))
+    })
 
     it.each(newCases.normal)('$name [write]', testRunnerNew)
     it.only.each(newCases.only)('$name [write]', testRunnerNew)
