@@ -18,20 +18,27 @@ exports[`toMatchVolume() > integration > 'missing file' 1`] = `[Error: directory
 
 exports[`toMatchVolume() > integration > 'not: identical files' 1`] = `[Error: volumes matched]`;
 
-exports[`toMatchVolume() > integration > 'respects ignore-extra option (mismatch)' 1`] = `[Error: volume is missing 1 expected file(s)]`;
+exports[`toMatchVolume() > integration > 'respects ignore-extra option (mismatch)' 1`] = `[Error: volume is missing 1 expected file]`;
 
-exports[`toMatchVolume() > integration > 'respects ignore-missing option (mismatch)' 1`] = `[Error: volume has 1 unexpected file(s)]`;
+exports[`toMatchVolume() > integration > 'respects ignore-missing option (mismatch)' 1`] = `[Error: volume has 1 unexpected file]`;
 
 exports[`toMatchVolume() > integration > 'symlink target mismatch' 1`] = `[Error: symlink target mismatch at \`/link.txt\`]`;
 
-exports[`toMatchVolume() > unit > 'binary files match' 1`] = `
+exports[`toMatchVolume() > unit > 'binary files match' > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'binary files mismatch' 1`] = `
+exports[`toMatchVolume() > unit > 'binary files match' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'binary files mismatch' > result 1`] = `
 {
   "actual": BinaryFile {
     "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
@@ -48,7 +55,28 @@ exports[`toMatchVolume() > unit > 'binary files mismatch' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'content mismatch' 1`] = `
+exports[`toMatchVolume() > unit > 'binary files mismatch' > result-full 1`] = `
+{
+  "actual": {
+    "/bin.dat": BinaryFile {
+      "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
+      "length": 4,
+      "preview": "3q2+7w==...3q2+7w==",
+    },
+  },
+  "expected": {
+    "/bin.dat": BinaryFile {
+      "hash": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
+      "length": 4,
+      "preview": "yv66vg==...yv66vg==",
+    },
+  },
+  "message": "Found 1 mismatched content",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'content mismatch' > result 1`] = `
 {
   "actual": TextFile {
     "data": "hello",
@@ -61,7 +89,24 @@ exports[`toMatchVolume() > unit > 'content mismatch' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'empty dir vs missing dir' 1`] = `
+exports[`toMatchVolume() > unit > 'content mismatch' > result-full 1`] = `
+{
+  "actual": {
+    "/foo.txt": TextFile {
+      "data": "hello",
+    },
+  },
+  "expected": {
+    "/foo.txt": TextFile {
+      "data": "world",
+    },
+  },
+  "message": "Found 1 mismatched content",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'empty dir vs missing dir' > result 1`] = `
 {
   "actual": [
     "/empty",
@@ -74,14 +119,34 @@ exports[`toMatchVolume() > unit > 'empty dir vs missing dir' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'empty directories match' 1`] = `
+exports[`toMatchVolume() > unit > 'empty dir vs missing dir' > result-full 1`] = `
+{
+  "actual": {
+    "/empty": Directory {},
+  },
+  "expected": {
+    "/": Directory {},
+  },
+  "message": "Found 2 mismatches: 1 missing path, 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'empty directories match' > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'extra file' 1`] = `
+exports[`toMatchVolume() > unit > 'empty directories match' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'extra file' > result 1`] = `
 {
   "actual": [
     "/bar.txt",
@@ -95,16 +160,39 @@ exports[`toMatchVolume() > unit > 'extra file' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'identical files' 1`] = `
+exports[`toMatchVolume() > unit > 'extra file' > result-full 1`] = `
+{
+  "actual": {
+    "/bar.txt": TextFile {
+      "data": "extra",
+    },
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/foo.txt": {},
+  },
+  "message": "Found 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'identical files' > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'invalid type (expected)' 1`] = `[TypeError: You must provide a memfs Volume instance to hint(toMatchVolume), not 'string'.]`;
+exports[`toMatchVolume() > unit > 'identical files' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
 
-exports[`toMatchVolume() > unit > 'invalid type (received)' 1`] = `
+exports[`toMatchVolume() > unit > 'invalid type (expected)' > result 1`] = `[TypeError: You must provide a memfs Volume instance to hint(toMatchVolume), not 'string'.]`;
+
+exports[`toMatchVolume() > unit > 'invalid type (received)' > result 1`] = `
 {
   "actual": "invalid",
   "expected": Volume {},
@@ -113,7 +201,7 @@ exports[`toMatchVolume() > unit > 'invalid type (received)' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'large binary file mismatch' 1`] = `
+exports[`toMatchVolume() > unit > 'large binary file mismatch' > result 1`] = `
 {
   "actual": BinaryFile {
     "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
@@ -130,7 +218,28 @@ exports[`toMatchVolume() > unit > 'large binary file mismatch' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'missing file' 1`] = `
+exports[`toMatchVolume() > unit > 'large binary file mismatch' > result-full 1`] = `
+{
+  "actual": {
+    "/big.bin": BinaryFile {
+      "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
+      "length": 100000,
+      "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+    },
+  },
+  "expected": {
+    "/big.bin": BinaryFile {
+      "hash": "814bf2767d4339019bf26a4d3a35066ad9c0f6c7",
+      "length": 100000,
+      "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+    },
+  },
+  "message": "Found 1 mismatched content",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'missing file' > result 1`] = `
 {
   "actual": [
     "/foo.txt",
@@ -144,7 +253,23 @@ exports[`toMatchVolume() > unit > 'missing file' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'not: content mismatch' 1`] = `
+exports[`toMatchVolume() > unit > 'missing file' > result-full 1`] = `
+{
+  "actual": {
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/bar.txt": TextFile {
+      "data": "extra",
+    },
+    "/foo.txt": {},
+  },
+  "message": "Found 1 missing path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'not: content mismatch' > result 1`] = `
 {
   "actual": TextFile {
     "data": "hello",
@@ -157,7 +282,24 @@ exports[`toMatchVolume() > unit > 'not: content mismatch' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'not: extra file' 1`] = `
+exports[`toMatchVolume() > unit > 'not: content mismatch' > result-full 1`] = `
+{
+  "actual": {
+    "/foo.txt": TextFile {
+      "data": "hello",
+    },
+  },
+  "expected": {
+    "/foo.txt": TextFile {
+      "data": "world",
+    },
+  },
+  "message": "Found 1 mismatched content",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'not: extra file' > result 1`] = `
 {
   "actual": [
     "/bar.txt",
@@ -171,14 +313,37 @@ exports[`toMatchVolume() > unit > 'not: extra file' 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'not: identical files' 1`] = `
+exports[`toMatchVolume() > unit > 'not: extra file' > result-full 1`] = `
+{
+  "actual": {
+    "/bar.txt": TextFile {
+      "data": "extra",
+    },
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/foo.txt": {},
+  },
+  "message": "Found 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'not: identical files' > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects ignore-extra option (mismatch)' 1`] = `
+exports[`toMatchVolume() > unit > 'not: identical files' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore-extra option (mismatch)' > result 1`] = `
 {
   "actual": [
     "/foo.txt",
@@ -187,19 +352,42 @@ exports[`toMatchVolume() > unit > 'respects ignore-extra option (mismatch)' 1`] 
     "/bar.txt",
     "/foo.txt",
   ],
-  "message": "volume is missing 1 expected file(s)",
+  "message": "volume is missing 1 expected file",
   "pass": false,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects ignore-extra option' 1`] = `
+exports[`toMatchVolume() > unit > 'respects ignore-extra option (mismatch)' > result-full 1`] = `
+{
+  "actual": {
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/bar.txt": TextFile {
+      "data": "hey",
+    },
+    "/foo.txt": {},
+  },
+  "message": "Found 1 missing path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore-extra option' > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects ignore-missing option (mismatch)' 1`] = `
+exports[`toMatchVolume() > unit > 'respects ignore-extra option' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore-missing option (mismatch)' > result 1`] = `
 {
   "actual": [
     "/extra.txt",
@@ -208,33 +396,70 @@ exports[`toMatchVolume() > unit > 'respects ignore-missing option (mismatch)' 1`
   "expected": [
     "/foo.txt",
   ],
-  "message": "volume has 1 unexpected file(s)",
+  "message": "volume has 1 unexpected file",
   "pass": false,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects ignore-missing option' 1`] = `
+exports[`toMatchVolume() > unit > 'respects ignore-missing option (mismatch)' > result-full 1`] = `
+{
+  "actual": {
+    "/extra.txt": TextFile {
+      "data": "extra",
+    },
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/foo.txt": {},
+  },
+  "message": "Found 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore-missing option' > result 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects prefix option' 1`] = `
+exports[`toMatchVolume() > unit > 'respects ignore-missing option' > result-full 1`] = `
 {
   "message": "volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'same ref (singleton vol)' 1`] = `
+exports[`toMatchVolume() > unit > 'respects prefix option' > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects prefix option' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'same ref (singleton vol)' > result 1`] = `
 {
   "message": "volumes matched by reference",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolume() > unit > 'symlink target mismatch' 1`] = `
+exports[`toMatchVolume() > unit > 'same ref (singleton vol)' > result-full 1`] = `
+{
+  "message": "volumes matched by reference",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'symlink target mismatch' > result 1`] = `
 {
   "actual": Symlink {
     "target": "/target1.txt",
@@ -243,6 +468,23 @@ exports[`toMatchVolume() > unit > 'symlink target mismatch' 1`] = `
     "target": "/target2.txt",
   },
   "message": "symlink target mismatch at \`/link.txt\`",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'symlink target mismatch' > result-full 1`] = `
+{
+  "actual": {
+    "/link.txt": Symlink {
+      "target": "/target1.txt",
+    },
+  },
+  "expected": {
+    "/link.txt": Symlink {
+      "target": "/target2.txt",
+    },
+  },
+  "message": "Found 1 mismatched content",
   "pass": false,
 }
 `;

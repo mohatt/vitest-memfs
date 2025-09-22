@@ -27,6 +27,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snaps
     "file",
     "3q2+7w==",
   ],
+  "/logs": null,
   "/src/index.js": [
     "file",
     "Ly8gaGk=",
@@ -119,7 +120,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'ignores extra files (mismatch)' [exis
     "/bar.txt",
     "/foo.txt",
   ],
-  "message": "volume is missing 1 expected file(s)",
+  "message": "volume is missing 1 expected file",
   "pass": false,
 }
 `;
@@ -140,7 +141,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'ignores missing files (mismatch)' [ex
   "expected": [
     "/foo.txt",
   ],
-  "message": "volume has 1 unexpected file(s)",
+  "message": "volume has 1 unexpected file",
   "pass": false,
 }
 `;
@@ -163,7 +164,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] 
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'prefix option mismatch' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option (mismatch)' [existing] > result 1`] = `
 {
   "actual": TextFile {
     "data": "hiz",
@@ -196,5 +197,56 @@ exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > result 1`] =
 {
   "message": "updated snapshot at prefix-option",
   "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'report all (ignores extra)' [existing] > result 1`] = `
+{
+  "actual": {
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/bar.txt": TextFile {
+      "data": "hey",
+    },
+    "/foo.txt": {},
+  },
+  "message": "Found 1 missing path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'report all (ignores missing)' [existing] > result 1`] = `
+{
+  "actual": {
+    "/extra.txt": TextFile {
+      "data": "extra",
+    },
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/foo.txt": {},
+  },
+  "message": "Found 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'report all' [existing] > result 1`] = `
+{
+  "actual": {
+    "/extra.txt": TextFile {
+      "data": "extra",
+    },
+    "/foo.txt": {},
+  },
+  "expected": {
+    "/bar.txt": TextFile {
+      "data": "hey",
+    },
+    "/foo.txt": {},
+  },
+  "message": "Found 2 mismatches: 1 missing path, 1 unexpected path",
+  "pass": false,
 }
 `;

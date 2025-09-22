@@ -49,7 +49,7 @@ export function compareVolumeMaps(
       const missing = expectedFiles.filter((f) => !(f in received))
       if (missing.length > 0) {
         listMismatchResult = {
-          reason: `volume is missing ${missing.length} expected file(s)`,
+          reason: `volume is missing ${missing.length} expected file${missing.length > 1 ? 's' : ''}`,
           actual: actualFiles.filter((f) => f in expected),
           expected: expectedFiles,
         }
@@ -61,7 +61,7 @@ export function compareVolumeMaps(
       const extra = actualFiles.filter((f) => !(f in expected))
       if (extra.length > 0) {
         listMismatchResult = {
-          reason: `volume has ${extra.length} unexpected file(s)`,
+          reason: `volume has ${extra.length} unexpected file${extra.length > 1 ? 's' : ''}`,
           actual: actualFiles,
           expected: expectedFiles.filter((f) => f in received),
         }
@@ -203,17 +203,17 @@ export function compareVolumeMapsFull(
 
   const total = missingCount + extraCount + diffCount
   if (total > 0) {
+    const parts: string[] = []
+    if (missingCount) parts.push(`${missingCount} missing path${missingCount > 1 ? 's' : ''}`)
+    if (extraCount) parts.push(`${extraCount} unexpected path${extraCount > 1 ? 's' : ''}`)
+    if (diffCount) parts.push(`${diffCount} mismatched content`)
+
     return {
       pass: false,
-      message: () => {
-        const parts: string[] = []
-        if (missingCount) parts.push(`${missingCount} missing file${missingCount > 1 ? 's' : ''}`)
-        if (extraCount) parts.push(`${extraCount} unexpected file${extraCount > 1 ? 's' : ''}`)
-        if (diffCount) parts.push(`${diffCount} content mismatch${diffCount > 1 ? 'es' : ''}`)
-
-        if (parts.length === 1) return `Found ${parts[0]}`
-        return `Found ${total} mismatches: ${parts.join(', ')}`
-      },
+      message: () =>
+        parts.length === 1
+          ? `Found ${parts[0]}` //
+          : `Found ${total} mismatches: ${parts.join(', ')}`,
       actual: actualDiff,
       expected: expectedDiff,
     }

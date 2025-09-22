@@ -8,7 +8,7 @@ interface TestCase {
   left: VolumeInput
   right: VolumeInput
   opts?: VolumeMatcherOptions
-  pass: boolean
+  pass?: boolean
   not?: boolean
 }
 
@@ -39,13 +39,11 @@ const cases = makeTests<TestCase>([
     name: 'invalid type (received)',
     left: () => 'invalid' as any,
     right: () => vol,
-    pass: false,
   },
   {
     name: 'invalid type (expected)',
     left: () => vol,
     right: () => 'invalid' as any,
-    pass: false,
   },
   {
     name: 'missing file',
@@ -198,19 +196,30 @@ describe('toMatchVolume()', () => {
     }
 
     // invokes the matcher directly to get the return value snapshot
-    async function testRunnerUnit({ left, right, opts, not }: TestCase) {
+    async function testRunnerUnit({ left, right, opts, pass, not }: TestCase) {
       const leftVol = makeVol(left)
       const rightVol = makeVol(right)
-      const invoke = async () => {
+      const invoke = async (fullReport = false) => {
         try {
-          const matcher = toMatchVolume.bind({ ...(mockState as any), isNot: not })
-          const result = await matcher(leftVol, rightVol, opts)
+          const matcher = toMatchVolume.bind(mockState as any)
+          const result = await matcher(
+            leftVol,
+            rightVol,
+            fullReport ? { ...opts, report: 'all' } : opts,
+          )
           return { ...result, message: result.message() }
         } catch (e) {
           return e
         }
       }
-      expect(await invoke()).toMatchSnapshot()
+      const result = await invoke()
+      if (pass != null) expect(result).toHaveProperty('pass', not ? !pass : pass)
+      expect(result).toMatchSnapshot('result')
+      if (pass != null) {
+        const result2 = await invoke(true)
+        expect(result2).toHaveProperty('pass', not ? !pass : pass)
+        expect(result2).toMatchSnapshot('result-full')
+      }
     }
 
     it.each(cases.normal)('$name', testRunnerUnit)

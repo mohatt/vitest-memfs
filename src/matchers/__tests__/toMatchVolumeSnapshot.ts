@@ -34,6 +34,7 @@ const newCases = makeTests<TestCase>([
     left: {
       '/src/index.js': '// hi',
       '/bin.dat': Buffer.from([0xde, 0xad, 0xbe, 0xef]),
+      '/logs': null,
       '/.gitignore': '',
     },
     pass: true,
@@ -80,7 +81,7 @@ const existingCases = makeTests<TestCase>([
     pass: true,
   },
   {
-    name: 'prefix option mismatch',
+    name: 'prefix option (mismatch)',
     left: { '/src/foo.txt': 'hiz', '/bar.txt': 'ignore-me' },
     right: 'foo-dir',
     opts: { prefix: '/src' },
@@ -90,34 +91,55 @@ const existingCases = makeTests<TestCase>([
     name: 'ignores extra files',
     left: { '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' },
     right: 'foo-bar',
-    pass: true,
     opts: { listMatch: 'ignore-extra' },
+    pass: true,
   },
   {
     name: 'ignores extra files (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
-    pass: false,
     opts: { listMatch: 'ignore-extra' },
+    pass: false,
   },
   {
     name: 'ignores missing files',
     left: { '/foo.txt': 'hi' },
     right: 'foo-bar',
-    pass: true,
     opts: { listMatch: 'ignore-missing' },
+    pass: true,
   },
   {
     name: 'ignores missing files (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
-    pass: false,
     opts: { listMatch: 'ignore-missing' },
+    pass: false,
   },
   {
     name: 'binary mismatch',
     left: { '/data.bin': Buffer.alloc(100_000, 0xbb) },
     right: 'bin-dir',
+    pass: false,
+  },
+  {
+    name: 'report all',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: 'foo-bar',
+    opts: { report: 'all' },
+    pass: false,
+  },
+  {
+    name: 'report all (ignores extra)',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: 'foo-bar',
+    opts: { listMatch: 'ignore-extra', report: 'all' },
+    pass: false,
+  },
+  {
+    name: 'report all (ignores missing)',
+    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    right: 'foo-bar',
+    opts: { listMatch: 'ignore-missing', report: 'all' },
     pass: false,
   },
 ])
@@ -137,7 +159,7 @@ describe('toMatchVolumeSnapshot()', () => {
       },
     })
 
-    async function runTest({ name, left, right, opts, update }: TestCase, existing = false) {
+    async function runTest({ name, left, right, opts, pass, update }: TestCase, existing = false) {
       const leftVol = makeVol(left)
       const rightVal = right ?? name.toLowerCase().replace(/\W+/g, '-')
       const state = mockState(update ?? 'new')
@@ -157,6 +179,7 @@ describe('toMatchVolumeSnapshot()', () => {
         await fsx.copy(fixtureDir, snapDir)
       }
       const result = await invoke()
+      expect(result).toHaveProperty('pass', pass)
       expect(result).toMatchSnapshot('result')
       if (!existing || update === 'all') {
         const snapDirMap = await pathToMap(snapDir).catch((e) => `${e.name}: ${e.code}`)
