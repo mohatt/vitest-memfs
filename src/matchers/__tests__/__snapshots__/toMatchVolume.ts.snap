@@ -8,7 +8,9 @@ exports[`toMatchVolume() > integration > 'empty dir vs missing dir' 1`] = `[Erro
 
 exports[`toMatchVolume() > integration > 'extra file' 1`] = `[Error: directory structure didn’t match]`;
 
-exports[`toMatchVolume() > integration > 'invalid type (expected)' 1`] = `[TypeError: You must provide a memfs Volume instance to [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchVolume[2m([22m[32mexpected[39m[2m)[22m, not 'string'.]`;
+exports[`toMatchVolume() > integration > 'invalid object type (expected)' 1`] = `[TypeError: You must provide a memfs Volume instance or plain JSON object to [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchVolume[2m([22m[32mexpected[39m[2m)[22m, not 'object'.]`;
+
+exports[`toMatchVolume() > integration > 'invalid type (expected)' 1`] = `[TypeError: You must provide a memfs Volume instance or plain JSON object to [2mexpect([22m[31mreceived[39m[2m).[22mtoMatchVolume[2m([22m[32mexpected[39m[2m)[22m, not 'string'.]`;
 
 exports[`toMatchVolume() > integration > 'invalid type (received)' 1`] = `[Error: expected [31m"invalid"[39m to be a memfs Volume instance]`;
 
@@ -23,6 +25,20 @@ exports[`toMatchVolume() > integration > 'respects ignore-extra option (mismatch
 exports[`toMatchVolume() > integration > 'respects ignore-missing option (mismatch)' 1`] = `[Error: volume has 1 unexpected file]`;
 
 exports[`toMatchVolume() > integration > 'symlink target mismatch' 1`] = `[Error: symlink target mismatch at \`/link.txt\`]`;
+
+exports[`toMatchVolume() > unit > 'accepts json input' > result 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'accepts json input' > result-full 1`] = `
+{
+  "message": "volumes matched",
+  "pass": true,
+}
+`;
 
 exports[`toMatchVolume() > unit > 'binary files match' > result 1`] = `
 {
@@ -190,7 +206,9 @@ exports[`toMatchVolume() > unit > 'identical files' > result-full 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'invalid type (expected)' > result 1`] = `[TypeError: You must provide a memfs Volume instance to hint(toMatchVolume), not 'string'.]`;
+exports[`toMatchVolume() > unit > 'invalid object type (expected)' > result 1`] = `[TypeError: You must provide a memfs Volume instance or plain JSON object to hint(toMatchVolume), not 'object'.]`;
+
+exports[`toMatchVolume() > unit > 'invalid type (expected)' > result 1`] = `[TypeError: You must provide a memfs Volume instance or plain JSON object to hint(toMatchVolume), not 'string'.]`;
 
 exports[`toMatchVolume() > unit > 'invalid type (received)' > result 1`] = `
 {

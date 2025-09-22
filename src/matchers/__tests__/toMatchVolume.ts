@@ -36,6 +36,12 @@ const cases = makeTests<TestCase>([
     pass: false,
   },
   {
+    name: 'accepts json input',
+    left: { '/foo.txt': 'hi' },
+    right: () => ({ '/foo.txt': 'hi' } as any),
+    pass: true,
+  },
+  {
     name: 'invalid type (received)',
     left: () => 'invalid' as any,
     right: () => vol,
@@ -44,6 +50,11 @@ const cases = makeTests<TestCase>([
     name: 'invalid type (expected)',
     left: () => vol,
     right: () => 'invalid' as any,
+  },
+  {
+    name: 'invalid object type (expected)',
+    left: () => vol,
+    right: () => new Date as any,
   },
   {
     name: 'missing file',
