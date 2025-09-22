@@ -3,6 +3,7 @@
 [![][npm-img]][npm-url] [![][ci-img]][ci-url] [![][codecov-img]][codecov-url] [![][license-img]][license-url]
 
 Custom [Vitest](https://vitest.dev) matchers for working with [memfs](https://github.com/streamich/memfs).
+
 Useful when testing code that reads/writes to the filesystem without touching the real disk.
 
 - [Usage](#usage)
@@ -67,6 +68,7 @@ it('compares volumes', () => {
 ### toMatchVolumeSnapshot
 
 Persist an entire `memfs` volume as a directory on disk and compare against it later.
+
 This works like Vitest’s `toMatchSnapshot`, but for filesystem trees.
 
 ```typescript
