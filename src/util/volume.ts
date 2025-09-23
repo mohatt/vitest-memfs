@@ -1,73 +1,103 @@
 import path from 'node:path'
+import pLimit from 'p-limit'
 import type { Volume } from 'memfs'
-import { getActualFS } from './common.js'
+import { importActualFS } from './common.js'
 
-export type VolumeMapEntry =
-  | { type: 'file'; data: Buffer }
-  | { type: 'symlink'; target: string }
-  | { type: 'empty-dir' }
+export type VolumeEntry =
+  | { kind: 'file'; data: Buffer }
+  | { kind: 'symlink'; target: string }
+  | { kind: 'empty-dir' }
 
 export interface VolumeMap {
-  [path: string]: VolumeMapEntry
+  [path: string]: VolumeEntry
+}
+
+interface VolumeToMapOptions {
+  prefix?: string
+  withData?: boolean
 }
 
 /**
  * Get a filename -> Buffer map from current volume.
  */
-export function volumeToMap(volume: Volume, targetDirPath = '/') {
+export function volumeToMap(volume: Volume, options?: VolumeToMapOptions) {
+  const { prefix = '/', withData = true } = options ?? {}
   const map: VolumeMap = Object.create(null)
 
   function walk(curr: string) {
     const stats = volume.lstatSync(curr)
     if (stats.isDirectory()) {
       const list = volume.readdirSync(curr) as string[]
-      if (list.length === 0) map[curr] = { type: 'empty-dir' }
+      if (list.length === 0) map[curr] = { kind: 'empty-dir' }
       for (const name of list) {
         walk(path.posix.join(curr, name))
       }
     } else if (stats.isFile()) {
-      map[curr] = { type: 'file', data: volume.readFileSync(curr) as Buffer }
+      map[curr] = {
+        kind: 'file', //
+        data: withData ? (volume.readFileSync(curr) as Buffer) : Buffer.alloc(0),
+      }
     } else if (stats.isSymbolicLink()) {
-      map[curr] = { type: 'symlink', target: volume.readlinkSync(curr) as string }
+      map[curr] = {
+        kind: 'symlink', //
+        target: volume.readlinkSync(curr) as string,
+      }
     }
   }
 
-  walk(targetDirPath)
+  walk(prefix)
   return map
 }
 
-export async function readDirToMap(targetDirPath: string, prefix?: string) {
-  const fsp = await getActualFS()
+export interface ReadDirToMapOptions extends VolumeToMapOptions {
+  concurrency?: number
+}
+
+export async function readDirToMap(targetDirPath: string, options?: ReadDirToMapOptions) {
+  const fsp = await importActualFS()
+  const { prefix = '', withData = true, concurrency = 48 } = options ?? {}
   const map: VolumeMap = Object.create(null)
 
-  async function walk(subDir: string) {
-    const entries = await fsp.readdir(subDir, { withFileTypes: true })
-    if (entries.length === 0) {
-      const rel = path.posix.relative(targetDirPath, subDir)
-      map[path.posix.join('/', prefix ?? '', rel)] = { type: 'empty-dir' }
-    }
-    for (const entry of entries) {
-      const abs = path.join(subDir, entry.name)
-      const rel = path.posix.relative(targetDirPath, abs)
-      const key = path.posix.join('/', prefix ?? '', rel)
+  const limit = pLimit(concurrency)
+  const EMPTY_BUFFER = Buffer.alloc(0)
 
-      if (entry.isDirectory()) {
-        await walk(abs)
-      } else if (entry.isFile()) {
-        map[key] = { type: 'file', data: await fsp.readFile(abs) }
-      } else if (entry.isSymbolicLink()) {
-        map[key] = { type: 'symlink', target: await fsp.readlink(abs) }
-      }
+  async function walk(dirPath: string) {
+    const entries = await fsp.readdir(dirPath, { withFileTypes: true })
+    if (entries.length === 0) {
+      const rel = path.posix.relative(targetDirPath, dirPath)
+      map[path.posix.join('/', prefix, rel)] = { kind: 'empty-dir' }
     }
+
+    await Promise.all(
+      entries.map(async (entry) => {
+        const abs = path.join(dirPath, entry.name)
+        const rel = path.posix.relative(targetDirPath, abs)
+        const key = path.posix.join('/', prefix, rel)
+
+        if (entry.isDirectory()) {
+          await walk(abs)
+        } else if (entry.isFile()) {
+          map[key] = {
+            kind: 'file',
+            data: withData ? await limit(() => fsp.readFile(abs)) : EMPTY_BUFFER,
+          }
+        } else if (entry.isSymbolicLink()) {
+          map[key] = {
+            kind: 'symlink',
+            target: await limit(() => fsp.readlink(abs)),
+          }
+        }
+      }),
+    )
   }
 
   await walk(targetDirPath)
   return map
 }
 
-export interface WriteVolumeToDirOptions {
-  prefix?: string
+export interface WriteVolumeToDirOptions extends VolumeToMapOptions {
   clear?: boolean
+  concurrency?: number
 }
 
 export async function writeVolumeToDir(
@@ -75,28 +105,39 @@ export async function writeVolumeToDir(
   targetDirPath: string,
   options?: WriteVolumeToDirOptions,
 ) {
-  const fsp = await getActualFS()
-  const { prefix, clear } = options ?? {}
+  const fsp = await importActualFS()
+  const { prefix, clear, withData = true, concurrency = 48 } = options ?? {}
   const realPrefix = (prefix ? path.posix.resolve('/', prefix) : '') + '/'
-  const map = volumeToMap(volume, realPrefix)
+  const map = volumeToMap(volume, { prefix: realPrefix })
 
   if (clear) {
     await fsp.rm(targetDirPath, { recursive: true, force: true })
   }
 
-  for (const [abs, entry] of Object.entries(map)) {
+  const writeDirs = new Set<string>()
+  const writeOps: Array<() => Promise<void>> = []
+
+  for (const abs in map) {
     // strip prefix
     const rel = abs.slice(realPrefix.length)
     const targetPath = path.join(targetDirPath, rel)
+    const entry = map[abs]
 
-    if (entry.type === 'file') {
-      await fsp.mkdir(path.dirname(targetPath), { recursive: true })
-      await fsp.writeFile(targetPath, entry.data)
-    } else if (entry.type === 'empty-dir') {
-      await fsp.mkdir(targetPath, { recursive: true })
-    } else if (entry.type === 'symlink') {
-      await fsp.mkdir(path.dirname(targetPath), { recursive: true })
-      await fsp.symlink(entry.target, targetPath)
+    if (entry.kind === 'file') {
+      writeDirs.add(path.dirname(targetPath))
+      writeOps.push(() => fsp.writeFile(targetPath, withData ? entry.data : Buffer.alloc(0)))
+    } else if (entry.kind === 'symlink') {
+      writeDirs.add(path.dirname(targetPath))
+      writeOps.push(async () => fsp.symlink(entry.target, targetPath))
+    } else if (entry.kind === 'empty-dir') {
+      writeDirs.add(targetPath)
     }
   }
+
+  // ensure directories exist
+  await Promise.all(Array.from(writeDirs).map((dir) => fsp.mkdir(dir, { recursive: true })))
+
+  // run file/symlink writes with concurrency limit
+  const limit = pLimit(concurrency)
+  await Promise.all(writeOps.map((op) => limit(op)))
 }

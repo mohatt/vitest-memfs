@@ -1,6 +1,6 @@
 import { vi, expect } from 'vitest'
 
-export async function getActualFS() {
+export async function importActualFS() {
   return vi.importActual<typeof import('fs/promises')>('fs/promises')
 }
 

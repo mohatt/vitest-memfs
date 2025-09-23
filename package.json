@@ -78,7 +78,8 @@
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
-    "istextorbinary": "^9.0.0"
+    "istextorbinary": "^9.0.0",
+    "p-limit": "^7.0.0"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
