@@ -32,7 +32,9 @@ jobs:
         run: pnpm run typecheck
 
       - name: Test
-        run: pnpm run test:coverage
+        run: |
+          pnpm run test:vfs
+          pnpm run test:coverage
 
       - name: Build
         run: pnpm run build

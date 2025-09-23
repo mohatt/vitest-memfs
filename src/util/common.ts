@@ -1,5 +1,11 @@
 import { vi, expect } from 'vitest'
 
+/**
+ * Imports the real `fs/promises` module, bypassing Vitest mocks.
+ *
+ * A direct import works in most cases, but if `fs` is mocked
+ * in a Vitest setup file it will return the mock instead.
+ */
 export async function importActualFS() {
   return vi.importActual<typeof import('fs/promises')>('fs/promises')
 }

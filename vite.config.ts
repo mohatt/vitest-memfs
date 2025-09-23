@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     include: ['**/*.test.?(c|m)[jt]s?(x)', '**/__tests__/*.?(c|m)[jt]s?(x)'],
     exclude: [...defaultExclude, '**/__fixtures__'],
-    setupFiles: ['./test/setup-test.ts'],
+    setupFiles: [`./test/setup-test${process.env.USE_FS_MOCK ? '-vfs' : ''}.ts`],
     expandSnapshotDiff: true,
     coverage: {
       provider: 'v8',

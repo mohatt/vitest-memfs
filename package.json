@@ -70,11 +70,12 @@
     "build": "pkgroll --clean-dist --sourcemap --target node18",
     "format": "prettier --write .",
     "lint": "prettier --check .",
-    "prepare": "NODE_ENV=production pnpm build",
+    "prepare": "cross-env NODE_ENV=production pnpm build",
     "release": "semantic-release --no-ci",
     "release:inspect": "semantic-release --dry-run",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:vfs": "cross-env USE_FS_MOCK=true vitest run vfs",
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
@@ -87,6 +88,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.19.17",
     "@vitest/coverage-v8": "^3.2.4",
+    "cross-env": "^10.0.0",
     "fs-extra": "^11.3.2",
     "memfs": "^4.25.0",
     "pkgroll": "^2.15.4",
