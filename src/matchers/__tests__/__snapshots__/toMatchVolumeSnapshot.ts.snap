@@ -27,6 +27,10 @@ exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snaps
     "file",
     "3q2+7w==",
   ],
+  "/index-link.js": [
+    "symlink",
+    "/src/index.js",
+  ],
   "/logs": null,
   "/src/index.js": [
     "file",

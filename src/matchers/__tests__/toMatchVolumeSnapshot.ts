@@ -3,7 +3,6 @@ import path from 'path'
 import fsx from 'fs-extra'
 import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util.js'
 import toMatchVolumeSnapshot, { VolumeSnapshotMatcherOptions } from '../toMatchVolumeSnapshot.js'
-import { Volume } from 'memfs'
 
 interface TestCase {
   name: string
@@ -32,11 +31,15 @@ const newCases = makeTests<TestCase>([
   },
   {
     name: 'different files',
-    left: {
-      '/src/index.js': '// hi',
-      '/bin.dat': Buffer.from([0xde, 0xad, 0xbe, 0xef]),
-      '/logs': null,
-      '/.gitignore': '',
+    left: () => {
+      const v = makeVol({
+        '/src/index.js': '// hi',
+        '/bin.dat': Buffer.from([0xde, 0xad, 0xbe, 0xef]),
+        '/logs': null,
+        '/.gitignore': '',
+      })
+      v.symlinkSync('/src/index.js', '/index-link.js')
+      return v
     },
     pass: true,
   },
@@ -110,7 +113,7 @@ const existingCases = makeTests<TestCase>([
   {
     name: 'respects listMatch=ignore-extra option',
     left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' })
+      const v = makeVol({ '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
@@ -148,7 +151,7 @@ const existingCases = makeTests<TestCase>([
   {
     name: 'symlink target mismatch',
     left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi', '/bar.txt': 'hey' })
+      const v = makeVol({ '/foo.txt': 'hi', '/bar.txt': 'hey' })
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
@@ -179,7 +182,7 @@ const existingCases = makeTests<TestCase>([
   {
     name: 'respects contentMatch=ignore option',
     left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hey', '/bar.txt': 'there' })
+      const v = makeVol({ '/foo.txt': 'hey', '/bar.txt': 'there' })
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
