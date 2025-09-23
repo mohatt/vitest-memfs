@@ -12,7 +12,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [existing] > result 
     "length": 100000,
     "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
   },
-  "message": "mismatch in file \`/data.bin\`",
+  "message": "Found file content mismatch at \`/data.bin\`",
   "pass": false,
 }
 `;
@@ -37,14 +37,14 @@ exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snaps
 
 exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > result 1`] = `
 {
-  "message": "created snapshot at different-files",
+  "message": "Created snapshot at different-files",
   "pass": true,
 }
 `;
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty dir match' [existing] > result 1`] = `
 {
-  "message": "volumes matched",
+  "message": "Volumes matched",
   "pass": true,
 }
 `;
@@ -57,7 +57,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty dir vs missing dir' [existing] 
   "expected": [
     "/",
   ],
-  "message": "directory structure didn’t match",
+  "message": "Directory structure didn’t match",
   "pass": false,
 }
 `;
@@ -70,14 +70,14 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > disk-snapshot 1`
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > result 1`] = `
 {
-  "message": "created snapshot at empty-dir",
+  "message": "Created snapshot at empty-dir",
   "pass": true,
 }
 `;
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [existing] > result 1`] = `
 {
-  "message": "volumes matched",
+  "message": "Volumes matched",
   "pass": true,
 }
 `;
@@ -90,7 +90,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > disk-snapshot
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > result 1`] = `
 {
-  "message": "created snapshot at empty-volume",
+  "message": "Created snapshot at empty-volume",
   "pass": true,
 }
 `;
@@ -99,7 +99,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'force no update' [write] > disk-snaps
 
 exports[`toMatchVolumeSnapshot() > unit > 'force no update' [write] > result 1`] = `
 {
-  "message": "snapshot directory \`force-no-update\` does not exist",
+  "message": "Snapshot directory \`force-no-update\` does not exist",
   "pass": false,
 }
 `;
@@ -115,7 +115,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > disk-snaps
 
 exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > result 1`] = `
 {
-  "message": "updated snapshot at empty-dir",
+  "message": "Updated snapshot at empty-dir",
   "pass": true,
 }
 `;
@@ -131,49 +131,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > disk-snapshot
 
 exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > result 1`] = `
 {
-  "message": "created snapshot at force-update",
-  "pass": true,
-}
-`;
-
-exports[`toMatchVolumeSnapshot() > unit > 'ignores extra files (mismatch)' [existing] > result 1`] = `
-{
-  "actual": [
-    "/foo.txt",
-  ],
-  "expected": [
-    "/bar.txt",
-    "/foo.txt",
-  ],
-  "message": "volume is missing 1 expected file",
-  "pass": false,
-}
-`;
-
-exports[`toMatchVolumeSnapshot() > unit > 'ignores extra files' [existing] > result 1`] = `
-{
-  "message": "volumes matched",
-  "pass": true,
-}
-`;
-
-exports[`toMatchVolumeSnapshot() > unit > 'ignores missing files (mismatch)' [existing] > result 1`] = `
-{
-  "actual": [
-    "/extra.txt",
-    "/foo.txt",
-  ],
-  "expected": [
-    "/foo.txt",
-  ],
-  "message": "volume has 1 unexpected file",
-  "pass": false,
-}
-`;
-
-exports[`toMatchVolumeSnapshot() > unit > 'ignores missing files' [existing] > result 1`] = `
-{
-  "message": "volumes matched",
+  "message": "Created snapshot at force-update",
   "pass": true,
 }
 `;
@@ -188,7 +146,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [existing] > result 1
 {
   "actual": "invalid",
   "expected": Volume {},
-  "message": "expected received("invalid") to be a memfs Volume instance",
+  "message": "Expected received("invalid") to be a memfs Volume instance",
   "pass": false,
 }
 `;
@@ -199,28 +157,8 @@ exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] 
 {
   "actual": "invalid",
   "expected": Volume {},
-  "message": "expected received("invalid") to be a memfs Volume instance",
+  "message": "Expected received("invalid") to be a memfs Volume instance",
   "pass": false,
-}
-`;
-
-exports[`toMatchVolumeSnapshot() > unit > 'prefix option (mismatch)' [existing] > result 1`] = `
-{
-  "actual": TextFile {
-    "data": "hiz",
-  },
-  "expected": TextFile {
-    "data": "hi",
-  },
-  "message": "mismatch in file \`/src/foo.txt\`",
-  "pass": false,
-}
-`;
-
-exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [existing] > result 1`] = `
-{
-  "message": "volumes matched",
-  "pass": true,
 }
 `;
 
@@ -235,31 +173,104 @@ exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > disk-snapsho
 
 exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > result 1`] = `
 {
-  "message": "created snapshot at prefix-option",
+  "message": "Created snapshot at prefix-option",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'report all (ignores extra)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects contentMatch=ignore option' [existing] > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option (mismatch)' [existing] > result 1`] = `
+{
+  "actual": [
+    "/foo.txt",
+  ],
+  "expected": [
+    "/bar.txt",
+    "/foo.txt",
+    "/link.txt",
+  ],
+  "message": "Volume is missing 2 expected files",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option' [existing] > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option (mismatch)' [existing] > result 1`] = `
+{
+  "actual": [
+    "/extra.txt",
+    "/foo.txt",
+  ],
+  "expected": [
+    "/foo.txt",
+  ],
+  "message": "Volume has 1 unexpected file",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option' [existing] > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option (mismatch)' [existing] > result 1`] = `
+{
+  "actual": File {
+    "data": "hiz",
+  },
+  "expected": File {
+    "data": "hi",
+  },
+  "message": "Found file content mismatch at \`/src/foo.txt\`",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option' [existing] > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-extra)' [existing] > result 1`] = `
 {
   "actual": {
     "/foo.txt": {},
   },
   "expected": {
-    "/bar.txt": TextFile {
+    "/bar.txt": File {
       "data": "hey",
     },
     "/foo.txt": {},
+    "/link.txt": Symlink {
+      "target": "/target1.txt",
+    },
   },
-  "message": "Found 1 missing path",
+  "message": "Found 2 missing paths",
   "pass": false,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'report all (ignores missing)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-missing)' [existing] > result 1`] = `
 {
   "actual": {
-    "/extra.txt": TextFile {
+    "/extra.txt": File {
       "data": "extra",
     },
     "/foo.txt": {},
@@ -272,21 +283,37 @@ exports[`toMatchVolumeSnapshot() > unit > 'report all (ignores missing)' [existi
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'report all' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option' [existing] > result 1`] = `
 {
   "actual": {
-    "/extra.txt": TextFile {
+    "/extra.txt": File {
       "data": "extra",
     },
     "/foo.txt": {},
   },
   "expected": {
-    "/bar.txt": TextFile {
+    "/bar.txt": File {
       "data": "hey",
     },
     "/foo.txt": {},
+    "/link.txt": Symlink {
+      "target": "/target1.txt",
+    },
   },
-  "message": "Found 2 mismatches: 1 missing path, 1 unexpected path",
+  "message": "Found 3 mismatches: 2 missing paths, 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'symlink target mismatch' [existing] > result 1`] = `
+{
+  "actual": Symlink {
+    "target": "/target2.txt",
+  },
+  "expected": Symlink {
+    "target": "/target1.txt",
+  },
+  "message": "Found symlink target mismatch at \`/link.txt\`",
   "pass": false,
 }
 `;

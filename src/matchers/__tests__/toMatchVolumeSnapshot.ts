@@ -3,6 +3,7 @@ import path from 'path'
 import fsx from 'fs-extra'
 import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util.js'
 import toMatchVolumeSnapshot, { VolumeSnapshotMatcherOptions } from '../toMatchVolumeSnapshot.js'
+import { Volume } from 'memfs'
 
 interface TestCase {
   name: string
@@ -93,42 +94,46 @@ const existingCases = makeTests<TestCase>([
     pass: true,
   },
   {
-    name: 'prefix option',
+    name: 'respects prefix option',
     left: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
     right: 'foo-dir',
     opts: { prefix: '/src' },
     pass: true,
   },
   {
-    name: 'prefix option (mismatch)',
+    name: 'respects prefix option (mismatch)',
     left: { '/src/foo.txt': 'hiz', '/bar.txt': 'ignore-me' },
     right: 'foo-dir',
     opts: { prefix: '/src' },
     pass: false,
   },
   {
-    name: 'ignores extra files',
-    left: { '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' },
+    name: 'respects listMatch=ignore-extra option',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
     right: 'foo-bar',
     opts: { listMatch: 'ignore-extra' },
     pass: true,
   },
   {
-    name: 'ignores extra files (mismatch)',
+    name: 'respects listMatch=ignore-extra option (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
     opts: { listMatch: 'ignore-extra' },
     pass: false,
   },
   {
-    name: 'ignores missing files',
+    name: 'respects listMatch=ignore-missing option',
     left: { '/foo.txt': 'hi' },
     right: 'foo-bar',
     opts: { listMatch: 'ignore-missing' },
     pass: true,
   },
   {
-    name: 'ignores missing files (mismatch)',
+    name: 'respects listMatch=ignore-missing option (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
     opts: { listMatch: 'ignore-missing' },
@@ -141,25 +146,46 @@ const existingCases = makeTests<TestCase>([
     pass: false,
   },
   {
-    name: 'report all',
+    name: 'symlink target mismatch',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi', '/bar.txt': 'hey' })
+      v.symlinkSync('/target2.txt', '/link.txt')
+      return v
+    },
+    right: 'foo-bar',
+    pass: false,
+  },
+  {
+    name: 'respects report=all option',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
     opts: { report: 'all' },
     pass: false,
   },
   {
-    name: 'report all (ignores extra)',
+    name: 'respects report=all option (with ignore-extra)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
     opts: { listMatch: 'ignore-extra', report: 'all' },
     pass: false,
   },
   {
-    name: 'report all (ignores missing)',
+    name: 'respects report=all option (with ignore-missing)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: 'foo-bar',
     opts: { listMatch: 'ignore-missing', report: 'all' },
     pass: false,
+  },
+  {
+    name: 'respects contentMatch=ignore option',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hey', '/bar.txt': 'there' })
+      v.symlinkSync('/target2.txt', '/link.txt')
+      return v
+    },
+    right: 'foo-bar',
+    opts: { contentMatch: 'ignore' },
+    pass: true,
   },
 ])
 
@@ -254,7 +280,7 @@ describe('toMatchVolumeSnapshot()', () => {
       const vol = makeVol({ '/foo.txt': 'hi' })
       await expect(
         () => expect(vol).not.toMatchVolumeSnapshot('test'), //
-      ).rejects.toThrow(/cannot be used with "not"/)
+      ).rejects.toThrow(/cannot be used with `not`/)
     })
   })
 })

@@ -21,7 +21,7 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
   if (!(received instanceof Volume)) {
     return {
       pass: false,
-      message: () => `expected ${utils.printReceived(received)} to be a memfs Volume instance`,
+      message: () => `Expected ${utils.printReceived(received)} to be a memfs Volume instance`,
       actual: received,
       expected: new (class Volume {})(),
     }
@@ -43,13 +43,14 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
   if (received === expectedVol) {
     return {
       pass: true,
-      message: () => 'volumes matched by reference',
+      message: () => 'Volumes matched by reference',
     }
   }
 
   const prefix = options?.prefix ?? undefined
-  const receivedMap = volumeToMap(received, prefix)
-  const expectedMap = volumeToMap(expectedVol, prefix)
+  const withData = options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files'
+  const receivedMap = volumeToMap(received, { prefix, withData })
+  const expectedMap = volumeToMap(expectedVol, { prefix, withData })
 
   return compareVolumeMaps(receivedMap, expectedMap, options)
 })

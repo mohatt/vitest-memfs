@@ -69,32 +69,88 @@ const cases = makeTests<TestCase>([
     pass: false,
   },
   {
-    name: 'respects ignore-extra option',
+    name: 'respects listMatch=ignore-extra option',
     left: { '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' },
     right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: true,
     opts: { listMatch: 'ignore-extra' },
   },
   {
-    name: 'respects ignore-extra option (mismatch)',
+    name: 'respects listMatch=ignore-extra option (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: false,
     opts: { listMatch: 'ignore-extra' },
   },
   {
-    name: 'respects ignore-missing option',
+    name: 'respects listMatch=ignore-missing option',
     left: { '/foo.txt': 'hi' },
     right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
-    pass: true,
     opts: { listMatch: 'ignore-missing' },
+    pass: true,
   },
   {
-    name: 'respects ignore-missing option (mismatch)',
+    name: 'respects listMatch=ignore-missing option (mismatch)',
     left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
     right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
-    pass: false,
     opts: { listMatch: 'ignore-missing' },
+    pass: false,
+  },
+  {
+    name: 'respects contentMatch=ignore option',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
+    right: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hello' })
+      v.symlinkSync('/target2.txt', '/link.txt')
+      return v
+    },
+    opts: { contentMatch: 'ignore' },
+    pass: true,
+  },
+  {
+    name: 'respects contentMatch=ignore option (mismatch)',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
+    right: { '/foo.txt': 'hello', '/link.txt': 'world' },
+    opts: { contentMatch: 'ignore' },
+    pass: false,
+  },
+  {
+    name: 'respects contentMatch=ignore-files option',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
+    right: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hello' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
+    opts: { contentMatch: 'ignore-files' },
+    pass: true,
+  },
+  {
+    name: 'respects contentMatch=ignore-symlinks option',
+    left: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
+    right: () => {
+      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+      v.symlinkSync('/target2.txt', '/link.txt')
+      return v
+    },
+    opts: { contentMatch: 'ignore-symlinks' },
+    pass: true,
   },
   {
     name: 'empty directories match',
@@ -126,15 +182,15 @@ const cases = makeTests<TestCase>([
     name: 'respects prefix option',
     left: { '/src/foo.txt': 'hi' },
     right: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
-    pass: true,
     opts: { prefix: '/src' },
+    pass: true,
   },
   {
-    name: 'respects prefix option 2',
+    name: 'respects prefix option (received)',
     left: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
     right: { '/src/foo.txt': 'hi' },
-    pass: true,
     opts: { prefix: '/src' },
+    pass: true,
   },
   {
     name: 'binary files match',

@@ -89,7 +89,7 @@ it('matches volume snapshot', () => {
 
   // prefix
   const vol3 = Volume.fromJSON({ '/foo.txt': 'hello', '/src/bar.txt': 'world' })
-  expect(vol3).toMatchVolume('src-snap', { prefix: '/src' })
+  expect(vol3).toMatchVolumeSnapshot('src-snap', { prefix: '/src' })
   // only files under `/src` are persisted/compared
 })
 ```
@@ -105,6 +105,7 @@ Both matchers support the same options:
 interface VolumeMatcherOptions {
   prefix?: string
   listMatch?: 'exact' | 'ignore-extra' | 'ignore-missing'
+  contentMatch?: 'all' | 'ignore' | 'ignore-files' | 'ignore-symlinks'
   report?: 'first' | 'all'
 }
 ```
@@ -115,6 +116,11 @@ interface VolumeMatcherOptions {
   - `exact` → directory contents must match exactly (default).
   - `ignore-extra` → extra files in the received volume are ignored.
   - `ignore-missing` → missing files in the received volume are ignored.
+- **contentMatch**
+  - `all` → compare file contents and symlink targets (default).
+  - `ignore` → only check that paths and path types match. Useful if you don’t care about the actual contents.
+  - `ignore-files` → only ignore file content comparison.
+  - `ignore-symlinks` → only ignore symlink target comparison.
 - **report**
   - `first` → stop on the first mismatch (default).
   - `all` → collect all mismatches and show a combined diff.

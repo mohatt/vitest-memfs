@@ -1,7 +1,7 @@
 import path from 'path'
 import type { SnapshotUpdateState } from 'vitest'
 import { Volume } from 'memfs'
-import { createMatcher, getActualFS } from '@/util/common.js'
+import { createMatcher, importActualFS } from '@/util/common.js'
 import { readDirToMap, volumeToMap, writeVolumeToDir } from '@/util/volume.js'
 import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
 
@@ -22,7 +22,7 @@ export default createMatcher(
   'toMatchVolumeSnapshot',
   async function (received, snapshotDir, options) {
     if (this.isNot) {
-      throw new Error(`toMatchVolumeSnapshot() cannot be used with "not"`)
+      throw new Error('toMatchVolumeSnapshot() cannot be used with `not`')
     }
 
     const { currentTestName, snapshotState, utils } = this
@@ -34,11 +34,11 @@ export default createMatcher(
       )
     }
 
-    const fs = await getActualFS()
+    const fsp = await importActualFS()
     const testId = `${currentTestName} > volume snapshots > ${snapshotDir}`
     const snapshotDirPath = path.join(path.dirname(snapshotState.snapshotPath), snapshotDir)
     const updateSnapshot: SnapshotUpdateState = (snapshotState as any)._updateSnapshot
-    const hasSnapshot = await fs
+    const hasSnapshot = await fsp
       .lstat(snapshotDirPath)
       .then((s) => s.isDirectory())
       .catch(() => false)
@@ -71,30 +71,31 @@ export default createMatcher(
     if (!(received instanceof Volume)) {
       return {
         pass: updateSnapshotState(false),
-        message: () => `expected ${utils.printReceived(received)} to be a memfs Volume instance`,
+        message: () => `Expected ${utils.printReceived(received)} to be a memfs Volume instance`,
         actual: received,
         expected: new (class Volume {})(),
       }
     }
 
     const prefix = options?.prefix ?? undefined
+    const withData = options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files'
     if (updateSnapshot === 'all' || (updateSnapshot !== 'none' && !hasSnapshot)) {
-      await writeVolumeToDir(received, snapshotDirPath, { prefix, clear: true })
+      await writeVolumeToDir(received, snapshotDirPath, { prefix, withData, clear: true })
       return {
         pass: updateSnapshotState(true),
-        message: () => `${hasSnapshot ? 'updated' : 'created'} snapshot at ${snapshotDir}`,
+        message: () => `${hasSnapshot ? 'Updated' : 'Created'} snapshot at ${snapshotDir}`,
       }
     }
 
     if (!hasSnapshot) {
       return {
         pass: updateSnapshotState(false),
-        message: () => `snapshot directory \`${snapshotDir}\` does not exist`,
+        message: () => `Snapshot directory \`${snapshotDir}\` does not exist`,
       }
     }
 
-    const expectedMap = await readDirToMap(snapshotDirPath, prefix)
-    const receivedMap = volumeToMap(received, prefix)
+    const expectedMap = await readDirToMap(snapshotDirPath, { prefix, withData })
+    const receivedMap = volumeToMap(received, { prefix, withData })
 
     const result = compareVolumeMaps(receivedMap, expectedMap, options)
     updateSnapshotState(result.pass)

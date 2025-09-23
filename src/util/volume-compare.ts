@@ -1,21 +1,34 @@
 import { createHash } from 'node:crypto'
 import { isText } from 'istextorbinary'
-import type { VolumeMap, VolumeMapEntry } from './volume.js'
+import type { VolumeMap, VolumeEntry } from './volume.js'
 
-export type VolumeCompareListMatch = 'exact' | 'ignore-extra' | 'ignore-missing'
-export type VolumeCompareReportType = 'first' | 'all'
+export type VolumeCompareListMatch =
+  | 'exact' // directory contents must match exactly (default)
+  | 'ignore-extra' // extra files in the received volume are ignored
+  | 'ignore-missing' // missing files in the received volume are ignored
+
+export type VolumeCompareContentMatch =
+  | 'all' // compare file contents + symlink targets (default)
+  | 'ignore' // ignore both, only check path + type
+  | 'ignore-files' // only ignore file content comparison
+  | 'ignore-symlinks' // only ignore symlink targets
+
+export type VolumeCompareReportType =
+  | 'first' // stop on the first mismatch (default)
+  | 'all' // collect all mismatches and show a combined diff
 
 export interface VolumeCompareOptions {
+  // How to match the directory structure of the received volume to the expected volume.
   listMatch?: VolumeCompareListMatch
+  // How to match the file contents of the received volume to the expected volume.
+  contentMatch?: VolumeCompareContentMatch
+  // How to report mismatches between the received volume and the expected volume.
   report?: VolumeCompareReportType
 }
 
-export interface VolumeCompareResult {
-  pass: boolean
-  message: () => string
-  actual?: unknown
-  expected?: unknown
-}
+type VolumeCompareResult =
+  | { pass: true; message: () => string }
+  | { pass: false; message: () => string; actual: DiffEntry; expected: DiffEntry }
 
 /**
  * Compare two volume maps.
@@ -30,10 +43,18 @@ export function compareVolumeMaps(
   options?: VolumeCompareOptions,
 ): VolumeCompareResult {
   if (options?.report === 'all') {
-    return compareVolumeMapsFull(received, expected, options)
+    return compareVolumeMapsAll(received, expected, options)
   }
 
-  const listMatch = options?.listMatch
+  return compareVolumeMapsFirst(received, expected, options)
+}
+
+export function compareVolumeMapsFirst(
+  received: VolumeMap,
+  expected: VolumeMap,
+  options?: Omit<VolumeCompareOptions, 'report'>,
+): VolumeCompareResult {
+  const { listMatch, contentMatch } = options ?? {}
   // make sorted arrays for error reporting and better diffing
   const actualFiles = Object.keys(received).sort()
   const expectedFiles = Object.keys(expected).sort()
@@ -49,7 +70,7 @@ export function compareVolumeMaps(
       const missing = expectedFiles.filter((f) => !(f in received))
       if (missing.length > 0) {
         listMismatchResult = {
-          reason: `volume is missing ${missing.length} expected file${missing.length > 1 ? 's' : ''}`,
+          reason: `Volume is missing ${missing.length} expected file${missing.length > 1 ? 's' : ''}`,
           actual: actualFiles.filter((f) => f in expected),
           expected: expectedFiles,
         }
@@ -61,7 +82,7 @@ export function compareVolumeMaps(
       const extra = actualFiles.filter((f) => !(f in expected))
       if (extra.length > 0) {
         listMismatchResult = {
-          reason: `volume has ${extra.length} unexpected file${extra.length > 1 ? 's' : ''}`,
+          reason: `Volume has ${extra.length} unexpected file${extra.length > 1 ? 's' : ''}`,
           actual: actualFiles,
           expected: expectedFiles.filter((f) => f in received),
         }
@@ -76,7 +97,7 @@ export function compareVolumeMaps(
         !actualFiles.every((f, i) => f === expectedFiles[i])
       ) {
         listMismatchResult = {
-          reason: 'directory structure didn’t match',
+          reason: 'Directory structure didn’t match',
           actual: actualFiles,
           expected: expectedFiles,
         }
@@ -93,120 +114,101 @@ export function compareVolumeMaps(
     }
   }
 
-  // compare contents
+  const matchEntry = makeDiffMatcher(contentMatch)
   const filesToCheck = listMatch === 'ignore-missing' ? actualFiles : expectedFiles
   for (const file of filesToCheck) {
-    const exp = expected[file]
-    const act = received[file]
-    if (exp.type !== act.type) {
+    const { kind, exp, act } = matchEntry(file, expected[file], received[file])
+    if (kind === DiffKind.TypeMismatch) {
       return {
         pass: false,
-        message: () => `path type mismatch at \`${file}\``,
-        actual: makeEntryPreview(file, act),
-        expected: makeEntryPreview(file, exp),
+        message: () => `Found path type mismatch at \`${file}\``,
+        actual: act,
+        expected: exp,
       }
     }
-    if (exp.type === 'file') {
-      const expBuff = exp.data
-      const actBuff = (act as typeof exp).data
-      if (!expBuff.equals(actBuff)) {
-        return {
-          pass: false,
-          message: () => `mismatch in file \`${file}\``,
-          actual: makeEntryPreview(file, act),
-          expected: makeEntryPreview(file, exp),
-        }
+    if (kind === DiffKind.FileMismatch) {
+      return {
+        pass: false,
+        message: () => `Found file content mismatch at \`${file}\``,
+        actual: act,
+        expected: exp,
       }
-    } else if (exp.type === 'symlink') {
-      const expTarget = exp.target
-      const actTarget = (act as typeof exp).target
-
-      if (expTarget !== actTarget) {
-        return {
-          pass: false,
-          message: () => `symlink target mismatch at \`${file}\``,
-          actual: makeEntryPreview(file, act),
-          expected: makeEntryPreview(file, exp),
-        }
+    }
+    if (kind === DiffKind.SymlinkMismatch) {
+      return {
+        pass: false,
+        message: () => `Found symlink target mismatch at \`${file}\``,
+        actual: act,
+        expected: exp,
       }
     }
   }
 
-  // everything is matched at this point
-  return {
-    pass: true,
-    message: () => 'volumes matched',
-  }
+  return { pass: true, message: () => 'Volumes matched' }
 }
 
-export function compareVolumeMapsFull(
+export function compareVolumeMapsAll(
   received: VolumeMap,
   expected: VolumeMap,
   options?: Omit<VolumeCompareOptions, 'report'>,
-) {
-  const listMatch = options?.listMatch
-  const actualDiff: Record<string, unknown> = {}
-  const expectedDiff: Record<string, unknown> = {}
+): VolumeCompareResult {
+  const { listMatch, contentMatch } = options ?? {}
+  const ignoreMissingPaths = listMatch === 'ignore-missing'
+  const ignoreExtraPaths = listMatch === 'ignore-extra'
+  const matchEntry = makeDiffMatcher(contentMatch)
+
+  const actualDiff: Record<string, DiffEntry> = {}
+  const expectedDiff: Record<string, DiffEntry> = {}
   let missingCount = 0
   let extraCount = 0
-  let diffCount = 0
+  let contentCount = 0
+  let typeCount = 0
 
-  function addDiff(f: string, exp?: VolumeMapEntry, act?: VolumeMapEntry) {
-    if (act) actualDiff[f] = makeEntryPreview(f, act)
-    if (exp) expectedDiff[f] = makeEntryPreview(f, exp)
-  }
-
-  function addMatch(f: string) {
-    actualDiff[f] = {}
-    expectedDiff[f] = {}
-  }
-
-  const filesToCheck =
-    listMatch === 'ignore-extra'
-      ? expected
-      : listMatch === 'ignore-missing'
-        ? received
-        : { ...received, ...expected }
-  for (const f in filesToCheck) {
-    const exp = expected[f]
-    const act = received[f]
-
-    if (exp && act) {
-      if (exp.type !== act.type) {
-        addDiff(f, exp, act)
-        diffCount++
-      } else if (exp.type === 'file') {
-        if (!exp.data.equals((act as typeof exp).data)) {
-          addDiff(f, exp, act)
-          diffCount++
-        } else {
-          addMatch(f)
+  const pathsToCheck = ignoreExtraPaths
+    ? expected
+    : ignoreMissingPaths
+      ? received
+      : { ...received, ...expected }
+  for (const p in pathsToCheck) {
+    const { kind, exp, act } = matchEntry(p, expected[p], received[p])
+    switch (kind) {
+      case DiffKind.TypeMismatch:
+        expectedDiff[p] = exp
+        actualDiff[p] = act
+        typeCount++
+        break
+      case DiffKind.FileMismatch:
+      case DiffKind.SymlinkMismatch:
+        expectedDiff[p] = exp
+        actualDiff[p] = act
+        contentCount++
+        break
+      case DiffKind.Missing:
+        if (!ignoreMissingPaths) {
+          expectedDiff[p] = exp
+          missingCount++
         }
-      } else if (exp.type === 'symlink') {
-        if (exp.target !== (act as typeof exp).target) {
-          addDiff(f, exp, act)
-          diffCount++
-        } else {
-          addMatch(f)
+        break
+      case DiffKind.Extra:
+        if (!ignoreExtraPaths) {
+          actualDiff[p] = act
+          extraCount++
         }
-      } else {
-        addMatch(f)
-      }
-    } else if (exp && !act && listMatch !== 'ignore-missing') {
-      addDiff(f, exp)
-      missingCount++
-    } else if (act && !exp && listMatch !== 'ignore-extra') {
-      addDiff(f, null, act)
-      extraCount++
+        break
+      case DiffKind.Match:
+      default:
+        actualDiff[p] = {}
+        expectedDiff[p] = {}
     }
   }
 
-  const total = missingCount + extraCount + diffCount
+  const total = missingCount + extraCount + contentCount + typeCount
   if (total > 0) {
     const parts: string[] = []
     if (missingCount) parts.push(`${missingCount} missing path${missingCount > 1 ? 's' : ''}`)
     if (extraCount) parts.push(`${extraCount} unexpected path${extraCount > 1 ? 's' : ''}`)
-    if (diffCount) parts.push(`${diffCount} mismatched content`)
+    if (typeCount) parts.push(`${typeCount} path type mismatch${typeCount > 1 ? 'es' : ''}`)
+    if (contentCount) parts.push(`${contentCount} mismatched content`)
 
     return {
       pass: false,
@@ -219,26 +221,90 @@ export function compareVolumeMapsFull(
     }
   }
 
-  return { pass: true, message: () => 'volumes matched' }
+  return { pass: true, message: () => 'Volumes matched' }
 }
 
-function makeEntryPreview(name: string, entry: VolumeMapEntry) {
-  if (entry.type === 'empty-dir') {
-    return new Directory()
-  }
-  if (entry.type === 'file') {
-    if (isText(name, entry.data)) {
-      return new TextFile(entry.data)
+type DiffEntry = Directory | File | BinaryFile | Symlink
+
+enum DiffKind {
+  Match = 0,
+  TypeMismatch = 1,
+  FileMismatch = 2,
+  SymlinkMismatch = 3,
+  Missing = 4,
+  Extra = 5,
+}
+
+type DiffResult =
+  | { kind: DiffKind.Match; exp?: never; act?: never }
+  | { kind: DiffKind.TypeMismatch; exp: DiffEntry; act: DiffEntry }
+  | { kind: DiffKind.FileMismatch; exp: DiffEntry; act: DiffEntry }
+  | { kind: DiffKind.SymlinkMismatch; exp: DiffEntry; act: DiffEntry }
+  | { kind: DiffKind.Missing; exp: DiffEntry; act?: never }
+  | { kind: DiffKind.Extra; exp?: never; act: DiffEntry }
+
+function makeDiffMatcher(contentMatch?: VolumeCompareContentMatch) {
+  const compareFiles = contentMatch !== 'ignore' && contentMatch !== 'ignore-files'
+  const compareSymlinks = contentMatch !== 'ignore' && contentMatch !== 'ignore-symlinks'
+
+  function makeDiff(path: string, entry: VolumeEntry): DiffEntry {
+    if (entry.kind === 'empty-dir') {
+      return EMPTY_DIR_MARKER
     }
-    return new BinaryFile(entry.data)
+
+    if (entry.kind === 'file') {
+      if (compareFiles) {
+        return isText(path, entry.data) //
+          ? new File(entry.data)
+          : new BinaryFile(entry.data)
+      }
+
+      return EMPTY_FILE_MARKER
+    }
+
+    return compareSymlinks //
+      ? new Symlink(entry.target)
+      : EMPTY_SYMLINK_MARKER
   }
-  return new Symlink(entry.target)
+
+  function matchEntry(path: string, exp: VolumeEntry, act: VolumeEntry): DiffResult {
+    if (exp && !act) {
+      return { kind: DiffKind.Missing, exp: makeDiff(path, exp) }
+    }
+
+    if (act && !exp) {
+      return { kind: DiffKind.Extra, act: makeDiff(path, act) }
+    }
+
+    const expKind = exp.kind
+    const actKind = act.kind
+
+    if (expKind !== actKind) {
+      return { kind: DiffKind.TypeMismatch, exp: makeDiff(path, exp), act: makeDiff(path, act) }
+    }
+
+    if (expKind === 'file' && compareFiles && !exp.data.equals((act as typeof exp).data)) {
+      return { kind: DiffKind.FileMismatch, exp: makeDiff(path, exp), act: makeDiff(path, act) }
+    }
+
+    if (expKind === 'symlink' && compareSymlinks && exp.target !== (act as typeof exp).target) {
+      return { kind: DiffKind.SymlinkMismatch, exp: makeDiff(path, exp), act: makeDiff(path, act) }
+    }
+
+    return { kind: DiffKind.Match }
+  }
+
+  return matchEntry
 }
 
-class TextFile {
-  data: string
-  constructor(buff: Buffer) {
-    this.data = buff.toString('utf8')
+class Directory {}
+
+class File {
+  declare data?: string
+  constructor(buff?: Buffer) {
+    if (buff) {
+      this.data = buff.toString('utf8')
+    }
   }
 }
 
@@ -250,13 +316,20 @@ class BinaryFile {
     this.hash = createHash('sha1').update(buff).digest('hex')
     this.length = buff.length
     const head = buff.subarray(0, trim).toString('base64')
-    const tail = buff.length > trim ? buff.subarray(-trim).toString('base64') : ''
+    const tail = buff.length > trim ? buff.subarray(-trim).toString('base64') : null
     this.preview = tail ? `${head}...${tail}` : head
   }
 }
 
 class Symlink {
-  constructor(public target: string) {}
+  declare target?: string
+  constructor(target?: string) {
+    if (target != null) {
+      this.target = target
+    }
+  }
 }
 
-class Directory {}
+const EMPTY_DIR_MARKER = Object.freeze(new Directory())
+const EMPTY_FILE_MARKER = Object.freeze(new File())
+const EMPTY_SYMLINK_MARKER = Object.freeze(new Symlink())
