@@ -266,6 +266,7 @@ describe('toMatchVolumeSnapshot()', () => {
         '/foo.txt': 'hi',
         '/bin/data.bin': Buffer.alloc(100_000, 0xbb),
       })
+      vol.symlinkSync('/foo.txt', '/bin/foo-link.txt')
       await expect(vol).toMatchVolumeSnapshot('test')
     })
 
