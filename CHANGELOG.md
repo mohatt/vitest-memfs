@@ -1,3 +1,20 @@
+# [1.1.0](https://github.com/mohatt/vitest-memfs/compare/v1.0.1...v1.1.0) (2025-09-23)
+
+
+### Bug Fixes
+
+* **diff:** fix binary file preview diffs ([cabdc26](https://github.com/mohatt/vitest-memfs/commit/cabdc269d00895ae56bf9363d79ab8609ce3e474))
+
+
+### Features
+
+* **compare:** add `contentMatch` option and improve diff reporting ([85e0101](https://github.com/mohatt/vitest-memfs/commit/85e01014cf8a333cceddd5d32ba0d523bc6a8d90))
+
+
+### Performance Improvements
+
+* **fs:** improve volume handling and async I/O operations using `p-limit` ([f96c018](https://github.com/mohatt/vitest-memfs/commit/f96c01870f0ee62d0370cb489a352e0220c5e8d4))
+
 ## [1.0.1](https://github.com/mohatt/vitest-memfs/compare/v1.0.0...v1.0.1) (2025-09-22)
 
 
