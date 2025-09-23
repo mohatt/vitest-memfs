@@ -59,12 +59,12 @@ exports[`toMatchVolume() > unit > 'binary files mismatch' > result 1`] = `
   "actual": BinaryFile {
     "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
     "length": 4,
-    "preview": "3q2+7w==...3q2+7w==",
+    "preview": "3q2+7w==",
   },
   "expected": BinaryFile {
     "hash": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
     "length": 4,
-    "preview": "yv66vg==...yv66vg==",
+    "preview": "yv66vg==",
   },
   "message": "mismatch in file \`/bin.dat\`",
   "pass": false,
@@ -77,14 +77,14 @@ exports[`toMatchVolume() > unit > 'binary files mismatch' > result-full 1`] = `
     "/bin.dat": BinaryFile {
       "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
       "length": 4,
-      "preview": "3q2+7w==...3q2+7w==",
+      "preview": "3q2+7w==",
     },
   },
   "expected": {
     "/bin.dat": BinaryFile {
       "hash": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
       "length": 4,
-      "preview": "yv66vg==...yv66vg==",
+      "preview": "yv66vg==",
     },
   },
   "message": "Found 1 mismatched content",

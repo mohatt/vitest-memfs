@@ -250,8 +250,8 @@ class BinaryFile {
     this.hash = createHash('sha1').update(buff).digest('hex')
     this.length = buff.length
     const head = buff.subarray(0, trim).toString('base64')
-    const tail = buff.subarray(buff.length - trim).toString('base64')
-    this.preview = `${head}...${tail}`
+    const tail = buff.length > trim ? buff.subarray(-trim).toString('base64') : ''
+    this.preview = tail ? `${head}...${tail}` : head
   }
 }
 
