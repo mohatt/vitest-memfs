@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [fixture] > result 1`] = `
 {
   "actual": BinaryFile {
     "hash": "84a8811d7cd58ccbe862c1f94a00366c12440816",
@@ -17,7 +17,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [existing] > result 
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'different files' [new] > disk-snapshot 1`] = `
 {
   "/.gitignore": [
     "file",
@@ -39,21 +39,21 @@ exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > disk-snaps
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'different files' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'different files' [new] > result 1`] = `
 {
   "message": "Created snapshot at different-files",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty dir match' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir match' [fixture] > result 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty dir vs missing dir' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir vs missing dir' [fixture] > result 1`] = `
 {
   "actual": [
     "/empty",
@@ -66,49 +66,49 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty dir vs missing dir' [existing] 
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [new] > disk-snapshot 1`] = `
 {
   "/empty": null,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [new] > result 1`] = `
 {
   "message": "Created snapshot at empty-dir",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [fixture] > result 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [new] > disk-snapshot 1`] = `
 {
   "/": null,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [new] > result 1`] = `
 {
   "message": "Created snapshot at empty-volume",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'force no update' [write] > disk-snapshot 1`] = `"Error: ENOENT"`;
+exports[`toMatchVolumeSnapshot() > unit > 'force no update' [new] > disk-snapshot 1`] = `"Error: ENOENT"`;
 
-exports[`toMatchVolumeSnapshot() > unit > 'force no update' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'force no update' [new] > result 1`] = `
 {
   "message": "Snapshot directory \`force-no-update\` does not exist",
   "pass": false,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [fixture] > disk-snapshot 1`] = `
 {
   "/foo.txt": [
     "file",
@@ -117,14 +117,14 @@ exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > disk-snaps
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'force update' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [fixture] > result 1`] = `
 {
   "message": "Updated snapshot at empty-dir",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [new] > disk-snapshot 1`] = `
 {
   "/foo.txt": [
     "file",
@@ -133,20 +133,20 @@ exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > disk-snapshot
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'force update' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'force update' [new] > result 1`] = `
 {
   "message": "Created snapshot at force-update",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [existing] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [fixture] > disk-snapshot 1`] = `
 {
   "/": null,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [fixture] > result 1`] = `
 {
   "actual": "invalid",
   "expected": Volume {},
@@ -155,9 +155,9 @@ exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [existing] > result 1
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > disk-snapshot 1`] = `"Error: ENOENT"`;
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [new] > disk-snapshot 1`] = `"Error: ENOENT"`;
 
-exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [new] > result 1`] = `
 {
   "actual": "invalid",
   "expected": Volume {},
@@ -166,7 +166,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'invalid volume' [write] > result 1`] 
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > disk-snapshot 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [new] > disk-snapshot 1`] = `
 {
   "/foo.txt": [
     "file",
@@ -175,21 +175,21 @@ exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > disk-snapsho
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [write] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [new] > result 1`] = `
 {
   "message": "Created snapshot at prefix-option",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects contentMatch=ignore option' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects contentMatch=ignore option' [fixture] > result 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option (mismatch)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option (mismatch)' [fixture] > result 1`] = `
 {
   "actual": [
     "/foo.txt",
@@ -204,14 +204,14 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra optio
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option' [fixture] > result 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option (mismatch)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option (mismatch)' [fixture] > result 1`] = `
 {
   "actual": [
     "/extra.txt",
@@ -225,14 +225,14 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing opt
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option' [fixture] > result 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option (mismatch)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option (mismatch)' [fixture] > result 1`] = `
 {
   "actual": File {
     "data": "hiz",
@@ -245,14 +245,14 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option (mismatch)' [e
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option' [fixture] > result 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-extra)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-extra)' [fixture] > result 1`] = `
 {
   "actual": {
     "/foo.txt": {},
@@ -271,7 +271,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with igno
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-missing)' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-missing)' [fixture] > result 1`] = `
 {
   "actual": {
     "/extra.txt": File {
@@ -287,7 +287,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with igno
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option' [fixture] > result 1`] = `
 {
   "actual": {
     "/extra.txt": File {
@@ -309,7 +309,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option' [existing
 }
 `;
 
-exports[`toMatchVolumeSnapshot() > unit > 'symlink target mismatch' [existing] > result 1`] = `
+exports[`toMatchVolumeSnapshot() > unit > 'symlink target mismatch' [fixture] > result 1`] = `
 {
   "actual": Symlink {
     "target": "/target2.txt",

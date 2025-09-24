@@ -63,7 +63,7 @@ const newCases = makeTests<TestCase>([
   },
 ])
 
-const existingCases = makeTests<TestCase>([
+const fixtureCases = makeTests<TestCase>([
   {
     name: 'empty volume',
     left: {},
@@ -210,7 +210,7 @@ describe('toMatchVolumeSnapshot()', () => {
       },
     })
 
-    async function runTest({ name, left, right, opts, pass, update }: TestCase, existing = false) {
+    async function runTest({ name, left, right, opts, pass, update }: TestCase, hasSnapshot = false) {
       const leftVol = makeVol(left)
       const rightVal = right ?? name.toLowerCase().replace(/\W+/g, '-')
       const state = mockState(update ?? 'new')
@@ -225,14 +225,14 @@ describe('toMatchVolumeSnapshot()', () => {
       }
       const snapDir = path.join(path.dirname(state.snapshotState.snapshotPath), rightVal)
       await fsx.remove(snapDir)
-      if (existing) {
+      if (hasSnapshot) {
         const fixtureDir = path.join(__dirname, '__fixtures__', rightVal)
         await fsx.copy(fixtureDir, snapDir)
       }
       const result = await invoke()
       expect(result).toHaveProperty('pass', pass)
       expect(result).toMatchSnapshot('result')
-      if (!existing || update === 'all') {
+      if (!hasSnapshot || update === 'all') {
         const snapDirMap = await pathToMap(snapDir).catch((e) => `${e.name}: ${e.code}`)
         expect(snapDirMap).toMatchSnapshot('disk-snapshot')
       }
@@ -243,7 +243,7 @@ describe('toMatchVolumeSnapshot()', () => {
       await runTest(testCase, false)
     }
 
-    async function testRunnerExisting(testCase: TestCase) {
+    async function testRunnerFixture(testCase: TestCase) {
       await runTest(testCase, true)
     }
 
@@ -254,13 +254,13 @@ describe('toMatchVolumeSnapshot()', () => {
       await fsx.emptyDir(path.join(fixturesRoot, 'empty-dir', 'empty'))
     })
 
-    it.each(newCases.normal)('$name [write]', testRunnerNew)
-    it.only.each(newCases.only)('$name [write]', testRunnerNew)
-    it.skip.each(newCases.skip)('$name [write]', testRunnerNew)
+    it.each(newCases.normal)('$name [new]', testRunnerNew)
+    it.only.each(newCases.only)('$name [new]', testRunnerNew)
+    it.skip.each(newCases.skip)('$name [new]', testRunnerNew)
 
-    it.each(existingCases.normal)('$name [existing]', testRunnerExisting)
-    it.only.each(existingCases.only)('$name [existing]', testRunnerExisting)
-    it.skip.each(existingCases.skip)('$name [existing]', testRunnerExisting)
+    it.each(fixtureCases.normal)('$name [fixture]', testRunnerFixture)
+    it.only.each(fixtureCases.only)('$name [fixture]', testRunnerFixture)
+    it.skip.each(fixtureCases.skip)('$name [fixture]', testRunnerFixture)
   })
 
   describe('integration', () => {
