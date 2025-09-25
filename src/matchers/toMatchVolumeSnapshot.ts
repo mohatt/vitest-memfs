@@ -30,7 +30,7 @@ export default createMatcher(
       throw new TypeError(
         `You must provide a snapshot directory name to ${utils.matcherHint(
           'toMatchVolumeSnapshot',
-        )}, not \`${typeof snapshotDir}\`.`,
+        )}, not \`${typeof snapshotDir}\``,
       )
     }
 
@@ -99,6 +99,14 @@ export default createMatcher(
 
     const result = compareVolumeMaps(receivedMap, expectedMap, options)
     updateSnapshotState(result.pass)
+
+    if (result.pass === true) {
+      return {
+        pass: true,
+        message: () => `Volume matched the snapshot at ${snapshotDir}`,
+      }
+    }
+
     return result
   },
 )

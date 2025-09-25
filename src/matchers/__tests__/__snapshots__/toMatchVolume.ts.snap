@@ -35,7 +35,7 @@ exports[`toMatchVolume() > unit > 'accepts json input' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'accepts json input' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'accepts json input' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -49,7 +49,7 @@ exports[`toMatchVolume() > unit > 'binary files match' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'binary files match' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'binary files match' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -73,7 +73,7 @@ exports[`toMatchVolume() > unit > 'binary files mismatch' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'binary files mismatch' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'binary files mismatch' > result-all 1`] = `
 {
   "actual": {
     "/bin.dat": BinaryFile {
@@ -107,7 +107,7 @@ exports[`toMatchVolume() > unit > 'content mismatch' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'content mismatch' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'content mismatch' > result-all 1`] = `
 {
   "actual": {
     "/foo.txt": File {
@@ -137,7 +137,7 @@ exports[`toMatchVolume() > unit > 'empty dir vs missing dir' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'empty dir vs missing dir' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'empty dir vs missing dir' > result-all 1`] = `
 {
   "actual": {
     "/empty": Directory {},
@@ -157,7 +157,7 @@ exports[`toMatchVolume() > unit > 'empty directories match' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'empty directories match' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'empty directories match' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -178,7 +178,7 @@ exports[`toMatchVolume() > unit > 'extra file' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'extra file' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'extra file' > result-all 1`] = `
 {
   "actual": {
     "/bar.txt": File {
@@ -201,7 +201,7 @@ exports[`toMatchVolume() > unit > 'identical files' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'identical files' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'identical files' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -238,7 +238,7 @@ exports[`toMatchVolume() > unit > 'large binary file mismatch' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'large binary file mismatch' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'large binary file mismatch' > result-all 1`] = `
 {
   "actual": {
     "/big.bin": BinaryFile {
@@ -273,7 +273,7 @@ exports[`toMatchVolume() > unit > 'missing file' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'missing file' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'missing file' > result-all 1`] = `
 {
   "actual": {
     "/foo.txt": {},
@@ -302,7 +302,7 @@ exports[`toMatchVolume() > unit > 'not: content mismatch' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'not: content mismatch' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'not: content mismatch' > result-all 1`] = `
 {
   "actual": {
     "/foo.txt": File {
@@ -333,7 +333,7 @@ exports[`toMatchVolume() > unit > 'not: extra file' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'not: extra file' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'not: extra file' > result-all 1`] = `
 {
   "actual": {
     "/bar.txt": File {
@@ -356,7 +356,7 @@ exports[`toMatchVolume() > unit > 'not: identical files' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'not: identical files' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'not: identical files' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -372,7 +372,7 @@ exports[`toMatchVolume() > unit > 'respects contentMatch=ignore option (mismatch
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects contentMatch=ignore option (mismatch)' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects contentMatch=ignore option (mismatch)' > result-all 1`] = `
 {
   "actual": {
     "/foo.txt": {},
@@ -394,7 +394,7 @@ exports[`toMatchVolume() > unit > 'respects contentMatch=ignore option' > result
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects contentMatch=ignore option' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects contentMatch=ignore option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -408,7 +408,7 @@ exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-files option' > 
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-files option' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-files option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -422,7 +422,7 @@ exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-symlinks option'
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-symlinks option' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-symlinks option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -443,7 +443,7 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option (misma
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option (mismatch)' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option (mismatch)' > result-all 1`] = `
 {
   "actual": {
     "/foo.txt": {},
@@ -466,7 +466,7 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option' > res
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -487,7 +487,7 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option (mis
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option (mismatch)' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option (mismatch)' > result-all 1`] = `
 {
   "actual": {
     "/extra.txt": File {
@@ -510,7 +510,7 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option' > r
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -524,7 +524,7 @@ exports[`toMatchVolume() > unit > 'respects prefix option (received)' > result 1
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects prefix option (received)' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects prefix option (received)' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -538,7 +538,7 @@ exports[`toMatchVolume() > unit > 'respects prefix option' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'respects prefix option' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'respects prefix option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,
@@ -552,7 +552,7 @@ exports[`toMatchVolume() > unit > 'same ref (singleton vol)' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'same ref (singleton vol)' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'same ref (singleton vol)' > result-all 1`] = `
 {
   "message": "Volumes matched by reference",
   "pass": true,
@@ -572,7 +572,7 @@ exports[`toMatchVolume() > unit > 'symlink target mismatch' > result 1`] = `
 }
 `;
 
-exports[`toMatchVolume() > unit > 'symlink target mismatch' > result-full 1`] = `
+exports[`toMatchVolume() > unit > 'symlink target mismatch' > result-all 1`] = `
 {
   "actual": {
     "/link.txt": Symlink {

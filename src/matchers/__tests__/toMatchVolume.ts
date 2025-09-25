@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { Volume, vol } from 'memfs'
+import { vol } from 'memfs'
 import { makeTests, makeVol, VolumeInput } from '@test/util.js'
 import toMatchVolume, { VolumeMatcherOptions } from '../toMatchVolume.js'
 
 interface TestCase {
   name: string
-  left: VolumeInput
-  right: VolumeInput
-  opts?: VolumeMatcherOptions
+  received: VolumeInput
+  expected: VolumeInput
+  options?: VolumeMatcherOptions
   pass?: boolean
   not?: boolean
 }
@@ -15,164 +15,164 @@ interface TestCase {
 const cases = makeTests<TestCase>([
   {
     name: 'identical files',
-    left: { '/foo.txt': 'hi' },
-    right: { '/foo.txt': 'hi' },
+    received: { '/foo.txt': 'hi' },
+    expected: { '/foo.txt': 'hi' },
     pass: true,
   },
   {
     name: 'same ref (singleton vol)',
-    left: () => {
+    received: () => {
       vol.reset()
       vol.fromJSON({ '/foo.txt': 'hi' })
       return vol
     },
-    right: () => vol,
+    expected: () => vol,
     pass: true,
   },
   {
     name: 'content mismatch',
-    left: { '/foo.txt': 'hello' },
-    right: { '/foo.txt': 'world' },
+    received: { '/foo.txt': 'hello' },
+    expected: { '/foo.txt': 'world' },
     pass: false,
   },
   {
     name: 'accepts json input',
-    left: { '/foo.txt': 'hi' },
-    right: () => ({ '/foo.txt': 'hi' }) as any,
+    received: { '/foo.txt': 'hi' },
+    expected: () => ({ '/foo.txt': 'hi' }) as any,
     pass: true,
   },
   {
     name: 'invalid type (received)',
-    left: () => 'invalid' as any,
-    right: () => vol,
+    received: () => 'invalid' as any,
+    expected: () => vol,
   },
   {
     name: 'invalid type (expected)',
-    left: () => vol,
-    right: () => 'invalid' as any,
+    received: () => vol,
+    expected: () => 'invalid' as any,
   },
   {
     name: 'invalid object type (expected)',
-    left: () => vol,
-    right: () => new Date() as any,
+    received: () => vol,
+    expected: () => new Date() as any,
   },
   {
     name: 'missing file',
-    left: { '/foo.txt': 'hi' },
-    right: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
+    received: { '/foo.txt': 'hi' },
+    expected: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
     pass: false,
   },
   {
     name: 'extra file',
-    left: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
-    right: { '/foo.txt': 'hi' },
+    received: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
+    expected: { '/foo.txt': 'hi' },
     pass: false,
   },
   {
     name: 'respects listMatch=ignore-extra option',
-    left: { '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' },
-    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
+    received: { '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' },
+    expected: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: true,
-    opts: { listMatch: 'ignore-extra' },
+    options: { listMatch: 'ignore-extra' },
   },
   {
     name: 'respects listMatch=ignore-extra option (mismatch)',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
     pass: false,
-    opts: { listMatch: 'ignore-extra' },
+    options: { listMatch: 'ignore-extra' },
   },
   {
     name: 'respects listMatch=ignore-missing option',
-    left: { '/foo.txt': 'hi' },
-    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
-    opts: { listMatch: 'ignore-missing' },
+    received: { '/foo.txt': 'hi' },
+    expected: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
+    options: { listMatch: 'ignore-missing' },
     pass: true,
   },
   {
     name: 'respects listMatch=ignore-missing option (mismatch)',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
-    opts: { listMatch: 'ignore-missing' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: { '/foo.txt': 'hi', '/bar.txt': 'hey' },
+    options: { listMatch: 'ignore-missing' },
     pass: false,
   },
   {
     name: 'respects contentMatch=ignore option',
-    left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+    received: () => {
+      const v = makeVol({ '/foo.txt': 'hi' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    right: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hello' })
+    expected: () => {
+      const v = makeVol({ '/foo.txt': 'hello' })
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
-    opts: { contentMatch: 'ignore' },
+    options: { contentMatch: 'ignore' },
     pass: true,
   },
   {
     name: 'respects contentMatch=ignore option (mismatch)',
-    left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+    received: () => {
+      const v = makeVol({ '/foo.txt': 'hi' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    right: { '/foo.txt': 'hello', '/link.txt': 'world' },
-    opts: { contentMatch: 'ignore' },
+    expected: { '/foo.txt': 'hello', '/link.txt': 'world' },
+    options: { contentMatch: 'ignore' },
     pass: false,
   },
   {
     name: 'respects contentMatch=ignore-files option',
-    left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+    received: () => {
+      const v = makeVol({ '/foo.txt': 'hi' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    right: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hello' })
+    expected: () => {
+      const v = makeVol({ '/foo.txt': 'hello' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    opts: { contentMatch: 'ignore-files' },
+    options: { contentMatch: 'ignore-files' },
     pass: true,
   },
   {
     name: 'respects contentMatch=ignore-symlinks option',
-    left: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+    received: () => {
+      const v = makeVol({ '/foo.txt': 'hi' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    right: () => {
-      const v = Volume.fromJSON({ '/foo.txt': 'hi' })
+    expected: () => {
+      const v = makeVol({ '/foo.txt': 'hi' })
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
-    opts: { contentMatch: 'ignore-symlinks' },
+    options: { contentMatch: 'ignore-symlinks' },
     pass: true,
   },
   {
     name: 'empty directories match',
-    left: { '/empty': null },
-    right: { '/empty': null },
+    received: { '/empty': null },
+    expected: { '/empty': null },
     pass: true,
   },
   {
     name: 'empty dir vs missing dir',
-    left: { '/empty': null },
-    right: {},
+    received: { '/empty': null },
+    expected: {},
     pass: false,
   },
   {
     name: 'symlink target mismatch',
-    left: () => {
-      const v = new Volume()
+    received: () => {
+      const v = makeVol()
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    right: () => {
-      const v = new Volume()
+    expected: () => {
+      const v = makeVol()
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
@@ -180,27 +180,27 @@ const cases = makeTests<TestCase>([
   },
   {
     name: 'respects prefix option',
-    left: { '/src/foo.txt': 'hi' },
-    right: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
-    opts: { prefix: '/src' },
+    received: { '/src/foo.txt': 'hi' },
+    expected: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
+    options: { prefix: '/src' },
     pass: true,
   },
   {
     name: 'respects prefix option (received)',
-    left: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
-    right: { '/src/foo.txt': 'hi' },
-    opts: { prefix: '/src' },
+    received: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
+    expected: { '/src/foo.txt': 'hi' },
+    options: { prefix: '/src' },
     pass: true,
   },
   {
     name: 'binary files match',
-    left: () => {
-      const v = new Volume()
+    received: () => {
+      const v = makeVol()
       v.writeFileSync('/bin.dat', Buffer.from([0xde, 0xad, 0xbe, 0xef]))
       return v
     },
-    right: () => {
-      const v = new Volume()
+    expected: () => {
+      const v = makeVol()
       v.writeFileSync('/bin.dat', Buffer.from([0xde, 0xad, 0xbe, 0xef]))
       return v
     },
@@ -208,13 +208,13 @@ const cases = makeTests<TestCase>([
   },
   {
     name: 'binary files mismatch',
-    left: () => {
-      const v = new Volume()
+    received: () => {
+      const v = makeVol()
       v.writeFileSync('/bin.dat', Buffer.from([0xde, 0xad, 0xbe, 0xef]))
       return v
     },
-    right: () => {
-      const v = new Volume()
+    expected: () => {
+      const v = makeVol()
       v.writeFileSync('/bin.dat', Buffer.from([0xca, 0xfe, 0xba, 0xbe]))
       return v
     },
@@ -222,14 +222,14 @@ const cases = makeTests<TestCase>([
   },
   {
     name: 'large binary file mismatch',
-    left: () => {
-      const v = new Volume()
+    received: () => {
+      const v = makeVol()
       const buf = Buffer.alloc(100_000, 0xaa) // 100KB of 0xaa
       v.writeFileSync('/big.bin', buf)
       return v
     },
-    right: () => {
-      const v = new Volume()
+    expected: () => {
+      const v = makeVol()
       const buf = Buffer.alloc(100_000, 0xaa)
       buf[50_000] = 0xbb // flip a byte in the middle
       v.writeFileSync('/big.bin', buf)
@@ -239,22 +239,22 @@ const cases = makeTests<TestCase>([
   },
   {
     name: 'not: identical files',
-    left: { '/foo.txt': 'hi' },
-    right: { '/foo.txt': 'hi' },
+    received: { '/foo.txt': 'hi' },
+    expected: { '/foo.txt': 'hi' },
     pass: false, // it should fail because `.not` negates a match
     not: true,
   },
   {
     name: 'not: content mismatch',
-    left: { '/foo.txt': 'hello' },
-    right: { '/foo.txt': 'world' },
+    received: { '/foo.txt': 'hello' },
+    expected: { '/foo.txt': 'world' },
     pass: true, // should pass because mismatch is expected with `.not`
     not: true,
   },
   {
     name: 'not: extra file',
-    left: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
-    right: { '/foo.txt': 'hi' },
+    received: { '/foo.txt': 'hi', '/bar.txt': 'extra' },
+    expected: { '/foo.txt': 'hi' },
     pass: true, // passes because with `.not` we want them NOT to match
     not: true,
   },
@@ -264,35 +264,38 @@ describe('toMatchVolume()', () => {
   describe('unit', () => {
     const mockState = {
       utils: {
-        printReceived: (received) => `received(${JSON.stringify(received)})`,
+        printReceived: (received: unknown) => `received(${JSON.stringify(received)})`,
         matcherHint: (matcherName: string) => `hint(${matcherName})`,
       },
     }
 
     // invokes the matcher directly to get the return value snapshot
-    async function testRunnerUnit({ left, right, opts, pass, not }: TestCase) {
-      const leftVol = makeVol(left)
-      const rightVol = makeVol(right)
-      const invoke = async (fullReport = false) => {
+    function testRunnerUnit({ received, expected, options, pass, not }: TestCase) {
+      const actVol = makeVol(received)
+      const expVol = makeVol(expected)
+
+      const invoke = (reportAll = false) => {
         try {
           const matcher = toMatchVolume.bind(mockState as any)
-          const result = await matcher(
-            leftVol,
-            rightVol,
-            fullReport ? { ...opts, report: 'all' } : opts,
-          )
+          const result = matcher(
+            actVol,
+            expVol,
+            reportAll ? { ...options, report: 'all' } : options,
+          ) as any
           return { ...result, message: result.message() }
         } catch (e) {
           return e
         }
       }
-      const result = await invoke()
+
+      const result = invoke()
       if (pass != null) expect(result).toHaveProperty('pass', not ? !pass : pass)
       expect(result).toMatchSnapshot('result')
+
       if (pass != null) {
-        const result2 = await invoke(true)
-        expect(result2).toHaveProperty('pass', not ? !pass : pass)
-        expect(result2).toMatchSnapshot('result-full')
+        const resultAll = invoke(true)
+        expect(resultAll).toHaveProperty('pass', not ? !pass : pass)
+        expect(resultAll).toMatchSnapshot('result-all')
       }
     }
 
@@ -302,23 +305,23 @@ describe('toMatchVolume()', () => {
   })
 
   describe('integration', () => {
-    function testRunnerInteg({ left, right, pass, opts, not }: TestCase) {
-      const leftVol = makeVol(left)
-      const rightVol = makeVol(right)
+    function testRunnerInteg({ received, expected, pass, options, not }: TestCase) {
+      const actVol = makeVol(received)
+      const expVol = makeVol(expected)
 
       if (not) {
         if (pass) {
-          expect(leftVol).not.toMatchVolume(rightVol, opts)
+          expect(actVol).not.toMatchVolume(expVol, options)
         } else {
           expect(() =>
-            expect(leftVol).not.toMatchVolume(rightVol, opts),
+            expect(actVol).not.toMatchVolume(expVol, options),
           ).toThrowErrorMatchingSnapshot()
         }
       } else {
         if (pass) {
-          expect(leftVol).toMatchVolume(rightVol, opts)
+          expect(actVol).toMatchVolume(expVol, options)
         } else {
-          expect(() => expect(leftVol).toMatchVolume(rightVol, opts)).toThrowErrorMatchingSnapshot()
+          expect(() => expect(actVol).toMatchVolume(expVol, options)).toThrowErrorMatchingSnapshot()
         }
       }
     }

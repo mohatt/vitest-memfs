@@ -27,7 +27,7 @@ export interface VolumeCompareOptions {
 }
 
 type VolumeCompareResult =
-  | { pass: true; message: () => string }
+  | { pass: true }
   | { pass: false; message: () => string; actual: DiffEntry; expected: DiffEntry }
 
 /**
@@ -144,7 +144,7 @@ export function compareVolumeMapsFirst(
     }
   }
 
-  return { pass: true, message: () => 'Volumes matched' }
+  return { pass: true }
 }
 
 export function compareVolumeMapsAll(
@@ -221,7 +221,7 @@ export function compareVolumeMapsAll(
     }
   }
 
-  return { pass: true, message: () => 'Volumes matched' }
+  return { pass: true }
 }
 
 type DiffEntry = Directory | File | BinaryFile | Symlink

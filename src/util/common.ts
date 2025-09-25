@@ -10,6 +10,10 @@ export async function importActualFS() {
   return vi.importActual<typeof import('fs/promises')>('fs/promises')
 }
 
+export function isPlainObject(value: unknown): value is Record<string, any> {
+  return Object.prototype.toString.call(value) === '[object Object]'
+}
+
 type MatchersObject = Parameters<(typeof expect)['extend']>[0]
 
 /**

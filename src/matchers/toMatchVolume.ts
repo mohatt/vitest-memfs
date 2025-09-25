@@ -1,5 +1,5 @@
 import { Volume, DirectoryJSON } from 'memfs'
-import { createMatcher } from '@/util/common.js'
+import { createMatcher, isPlainObject } from '@/util/common.js'
 import { volumeToMap } from '@/util/volume.js'
 import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
 
@@ -17,7 +17,7 @@ declare module 'vitest' {
 }
 
 export default createMatcher('toMatchVolume', function (received, expected, options) {
-  const { utils } = this
+  const { utils, isNot } = this
   if (!(received instanceof Volume)) {
     return {
       pass: false,
@@ -30,13 +30,13 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
   let expectedVol: Volume
   if (expected instanceof Volume) {
     expectedVol = expected
-  } else if (Object.prototype.toString.call(expected) === '[object Object]') {
+  } else if (isPlainObject(expected)) {
     expectedVol = Volume.fromJSON(expected)
   } else {
     throw new TypeError(
       `You must provide a memfs Volume instance or plain JSON object to ${utils.matcherHint(
         'toMatchVolume',
-      )}, not \`${typeof expected}\`.`,
+      )}, not \`${typeof expected}\``,
     )
   }
 
@@ -52,5 +52,16 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
   const receivedMap = volumeToMap(received, { prefix, withData })
   const expectedMap = volumeToMap(expectedVol, { prefix, withData })
 
-  return compareVolumeMaps(receivedMap, expectedMap, options)
+  const result = compareVolumeMaps(receivedMap, expectedMap, options)
+  if (result.pass === true) {
+    return {
+      pass: true,
+      message: () =>
+        isNot //
+          ? 'Expected volumes to not match, but they did'
+          : 'Volumes matched',
+    }
+  }
+
+  return result
 })

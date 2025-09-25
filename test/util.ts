@@ -4,7 +4,7 @@ import { SnapshotNode, toSnapshotSync } from 'memfs/lib/snapshot'
 
 export type VolumeInput = DirectoryJSON | (() => Volume)
 
-export function makeVol(input: VolumeInput) {
+export function makeVol(input: VolumeInput = {}) {
   return typeof input === 'function' ? input() : Volume.fromJSON(input)
 }
 

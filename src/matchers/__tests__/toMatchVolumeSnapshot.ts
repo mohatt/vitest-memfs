@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeAll, SnapshotUpdateState } from 'vitest'
-import path from 'path'
+import path from 'node:path'
 import fsx from 'fs-extra'
 import { makeTests, makeVol, pathToMap, VolumeInput } from '@test/util.js'
 import toMatchVolumeSnapshot, { VolumeSnapshotMatcherOptions } from '../toMatchVolumeSnapshot.js'
 
 interface TestCase {
   name: string
-  left: VolumeInput
-  right?: string
-  opts?: VolumeSnapshotMatcherOptions
+  received: VolumeInput
+  expected?: string
+  options?: VolumeSnapshotMatcherOptions
   update?: SnapshotUpdateState
   pass: boolean
 }
@@ -16,22 +16,22 @@ interface TestCase {
 const newCases = makeTests<TestCase>([
   {
     name: 'empty volume',
-    left: {},
+    received: {},
     pass: true,
   },
   {
     name: 'empty dir',
-    left: { '/empty': null },
+    received: { '/empty': null },
     pass: true,
   },
   {
     name: 'invalid volume',
-    left: () => 'invalid' as any,
+    received: () => 'invalid' as any,
     pass: false,
   },
   {
     name: 'different files',
-    left: () => {
+    received: () => {
       const v = makeVol({
         '/src/index.js': '// hi',
         '/bin.dat': Buffer.from([0xde, 0xad, 0xbe, 0xef]),
@@ -45,20 +45,20 @@ const newCases = makeTests<TestCase>([
   },
   {
     name: 'force update',
-    left: { '/foo.txt': 'hi' },
+    received: { '/foo.txt': 'hi' },
     update: 'all',
     pass: true,
   },
   {
     name: 'force no update',
-    left: { '/foo.txt': 'hi' },
+    received: { '/foo.txt': 'hi' },
     update: 'none',
     pass: false,
   },
   {
     name: 'prefix option',
-    left: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
-    opts: { prefix: '/src' },
+    received: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
+    options: { prefix: '/src' },
     pass: true,
   },
 ])
@@ -66,128 +66,128 @@ const newCases = makeTests<TestCase>([
 const fixtureCases = makeTests<TestCase>([
   {
     name: 'empty volume',
-    left: {},
-    right: 'empty-vol',
+    received: {},
+    expected: 'empty-vol',
     pass: true,
   },
   {
     name: 'invalid volume',
-    left: () => 'invalid' as any,
-    right: 'empty-vol',
+    received: () => 'invalid' as any,
+    expected: 'empty-vol',
     update: 'all',
     pass: false,
   },
   {
     name: 'empty dir vs missing dir',
-    left: { '/empty': null },
-    right: 'empty-vol',
+    received: { '/empty': null },
+    expected: 'empty-vol',
     pass: false,
   },
   {
     name: 'empty dir match',
-    left: { '/empty': null },
-    right: 'empty-dir',
+    received: { '/empty': null },
+    expected: 'empty-dir',
     pass: true,
   },
   {
     name: 'force update',
-    left: { '/foo.txt': 'hi' },
-    right: 'empty-dir',
+    received: { '/foo.txt': 'hi' },
+    expected: 'empty-dir',
     update: 'all',
     pass: true,
   },
   {
     name: 'respects prefix option',
-    left: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
-    right: 'foo-dir',
-    opts: { prefix: '/src' },
+    received: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
+    expected: 'foo-dir',
+    options: { prefix: '/src' },
     pass: true,
   },
   {
     name: 'respects prefix option (mismatch)',
-    left: { '/src/foo.txt': 'hiz', '/bar.txt': 'ignore-me' },
-    right: 'foo-dir',
-    opts: { prefix: '/src' },
+    received: { '/src/foo.txt': 'hiz', '/bar.txt': 'ignore-me' },
+    expected: 'foo-dir',
+    options: { prefix: '/src' },
     pass: false,
   },
   {
     name: 'respects listMatch=ignore-extra option',
-    left: () => {
+    received: () => {
       const v = makeVol({ '/foo.txt': 'hi', '/bar.txt': 'hey', '/extra.txt': 'extra' })
       v.symlinkSync('/target1.txt', '/link.txt')
       return v
     },
-    right: 'foo-bar',
-    opts: { listMatch: 'ignore-extra' },
+    expected: 'foo-bar',
+    options: { listMatch: 'ignore-extra' },
     pass: true,
   },
   {
     name: 'respects listMatch=ignore-extra option (mismatch)',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: 'foo-bar',
-    opts: { listMatch: 'ignore-extra' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: 'foo-bar',
+    options: { listMatch: 'ignore-extra' },
     pass: false,
   },
   {
     name: 'respects listMatch=ignore-missing option',
-    left: { '/foo.txt': 'hi' },
-    right: 'foo-bar',
-    opts: { listMatch: 'ignore-missing' },
+    received: { '/foo.txt': 'hi' },
+    expected: 'foo-bar',
+    options: { listMatch: 'ignore-missing' },
     pass: true,
   },
   {
     name: 'respects listMatch=ignore-missing option (mismatch)',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: 'foo-bar',
-    opts: { listMatch: 'ignore-missing' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: 'foo-bar',
+    options: { listMatch: 'ignore-missing' },
     pass: false,
   },
   {
     name: 'binary mismatch',
-    left: { '/data.bin': Buffer.alloc(100_000, 0xbb) },
-    right: 'bin-dir',
+    received: { '/data.bin': Buffer.alloc(100_000, 0xbb) },
+    expected: 'bin-dir',
     pass: false,
   },
   {
     name: 'symlink target mismatch',
-    left: () => {
+    received: () => {
       const v = makeVol({ '/foo.txt': 'hi', '/bar.txt': 'hey' })
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
-    right: 'foo-bar',
+    expected: 'foo-bar',
     pass: false,
   },
   {
     name: 'respects report=all option',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: 'foo-bar',
-    opts: { report: 'all' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: 'foo-bar',
+    options: { report: 'all' },
     pass: false,
   },
   {
     name: 'respects report=all option (with ignore-extra)',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: 'foo-bar',
-    opts: { listMatch: 'ignore-extra', report: 'all' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: 'foo-bar',
+    options: { listMatch: 'ignore-extra', report: 'all' },
     pass: false,
   },
   {
     name: 'respects report=all option (with ignore-missing)',
-    left: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
-    right: 'foo-bar',
-    opts: { listMatch: 'ignore-missing', report: 'all' },
+    received: { '/foo.txt': 'hi', '/extra.txt': 'extra' },
+    expected: 'foo-bar',
+    options: { listMatch: 'ignore-missing', report: 'all' },
     pass: false,
   },
   {
     name: 'respects contentMatch=ignore option',
-    left: () => {
+    received: () => {
       const v = makeVol({ '/foo.txt': 'hey', '/bar.txt': 'there' })
       v.symlinkSync('/target2.txt', '/link.txt')
       return v
     },
-    right: 'foo-bar',
-    opts: { contentMatch: 'ignore' },
+    expected: 'foo-bar',
+    options: { contentMatch: 'ignore' },
     pass: true,
   },
 ])
@@ -205,28 +205,31 @@ describe('toMatchVolumeSnapshot()', () => {
         unmatched: { increment: vi.fn() },
       },
       utils: {
-        printReceived: (received) => `received(${JSON.stringify(received)})`,
+        printReceived: (received: unknown) => `received(${JSON.stringify(received)})`,
         matcherHint: (matcherName: string) => `hint(${matcherName})`,
       },
     })
 
-    async function runTest({ name, left, right, opts, pass, update }: TestCase, hasSnapshot = false) {
-      const leftVol = makeVol(left)
-      const rightVal = right ?? name.toLowerCase().replace(/\W+/g, '-')
+    async function runTest(
+      { name, received, expected, options, pass, update }: TestCase,
+      hasSnapshot = false,
+    ) {
+      const actVol = makeVol(received)
+      const expDir = expected ?? name.toLowerCase().replace(/\W+/g, '-')
       const state = mockState(update ?? 'new')
       const invoke = async () => {
         try {
           const matcher = toMatchVolumeSnapshot.bind(state as any)
-          const result = await matcher(leftVol, rightVal, opts)
+          const result = await matcher(actVol, expDir, options)
           return { ...result, message: result.message() }
         } catch (e) {
           return e
         }
       }
-      const snapDir = path.join(path.dirname(state.snapshotState.snapshotPath), rightVal)
+      const snapDir = path.join(path.dirname(state.snapshotState.snapshotPath), expDir)
       await fsx.remove(snapDir)
       if (hasSnapshot) {
-        const fixtureDir = path.join(__dirname, '__fixtures__', rightVal)
+        const fixtureDir = path.join(__dirname, '__fixtures__', expDir)
         await fsx.copy(fixtureDir, snapDir)
       }
       const result = await invoke()
