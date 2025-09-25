@@ -1,0 +1,183 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`toHaveVolumeEntries() > integration > 'detects type mismatches for glob patterns' 1`] = `[Error: Volume entries did not satisfy the expected entries (found 1 path type mismatch)]`;
+
+exports[`toHaveVolumeEntries() > integration > 'detects type mismatches' 1`] = `[Error: Volume entries did not satisfy the expected entries (found 2 path type mismatches)]`;
+
+exports[`toHaveVolumeEntries() > integration > 'fails when a path is missing' 1`] = `[Error: Volume entries did not satisfy the expected entries (found 1 missing entry)]`;
+
+exports[`toHaveVolumeEntries() > integration > 'fails when glob pattern has no matches' 1`] = `[Error: Volume entries did not satisfy the expected entries (found 1 missing entry)]`;
+
+exports[`toHaveVolumeEntries() > integration > 'handles non-volume inputs' 1`] = `[Error: Expected [31m"invalid volume"[39m to be a memfs Volume instance]`;
+
+exports[`toHaveVolumeEntries() > integration > 'not: matches an array of paths' 1`] = `[Error: Expected volume entries not to satisfy the expected entries, but it did (found 1 match)]`;
+
+exports[`toHaveVolumeEntries() > integration > 'throws for invalid entry type values' 1`] = `[TypeError: Invalid volume entries provided to [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveVolumeEntries[2m([22m[32mexpected[39m[2m)[22m. Expected entry type to be \`file\`, \`dir\`, \`symlink\`, \`any\`, got \`folder\`]`;
+
+exports[`toHaveVolumeEntries() > integration > 'throws for invalid path array values' 1`] = `[TypeError: Invalid volume entries provided to [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveVolumeEntries[2m([22m[32mexpected[39m[2m)[22m. Expected array item to be string | { path: string }, got \`42\`]`;
+
+exports[`toHaveVolumeEntries() > integration > 'throws for invalid pattern objects' 1`] = `[TypeError: Invalid volume entries provided to [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveVolumeEntries[2m([22m[32mexpected[39m[2m)[22m. Expected array item to be string | { path: string }, got \`{"path":123}\`]`;
+
+exports[`toHaveVolumeEntries() > integration > 'throws when array includes regular expression' 1`] = `[TypeError: Invalid volume entries provided to [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveVolumeEntries[2m([22m[32mexpected[39m[2m)[22m. Expected array item to be string | { path: string }, got \`{}\`]`;
+
+exports[`toHaveVolumeEntries() > integration > 'throws when pattern object uses regex path' 1`] = `[TypeError: Invalid volume entries provided to [2mexpect([22m[31mreceived[39m[2m).[22mtoHaveVolumeEntries[2m([22m[32mexpected[39m[2m)[22m. Expected array item to be string | { path: string }, got \`{"path":{}}\`]`;
+
+exports[`toHaveVolumeEntries() > unit > 'detects type mismatches for glob patterns' > result 1`] = `
+{
+  "actual": {
+    "glob(\`/**/*.txt\`)": {
+      "count": 0,
+    },
+  },
+  "expected": {
+    "glob(\`/**/*.txt\`)": {
+      "count": 1,
+    },
+  },
+  "message": "Volume entries did not satisfy the expected entries (found 1 path type mismatch)",
+  "pass": false,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'detects type mismatches' > result 1`] = `
+{
+  "actual": {
+    "/dir": {
+      "type": "dir",
+    },
+    "/foo.txt": {
+      "type": "file",
+    },
+  },
+  "expected": {
+    "/dir": {
+      "type": "file",
+    },
+    "/foo.txt": {
+      "type": "dir",
+    },
+  },
+  "message": "Volume entries did not satisfy the expected entries (found 2 path type mismatches)",
+  "pass": false,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'fails when a path is missing' > result 1`] = `
+{
+  "actual": {
+    "/missing.txt": {
+      "exists": false,
+    },
+  },
+  "expected": {
+    "/missing.txt": {
+      "exists": true,
+    },
+  },
+  "message": "Volume entries did not satisfy the expected entries (found 1 missing entry)",
+  "pass": false,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'fails when glob pattern has no matches' > result 1`] = `
+{
+  "actual": {
+    "glob(\`/src/**/*.ts\`)": {
+      "count": 0,
+    },
+  },
+  "expected": {
+    "glob(\`/src/**/*.ts\`)": {
+      "count": 1,
+    },
+  },
+  "message": "Volume entries did not satisfy the expected entries (found 1 missing entry)",
+  "pass": false,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'handles non-volume inputs' > result 1`] = `
+{
+  "actual": "invalid volume",
+  "expected": Volume {},
+  "message": "Expected received("invalid volume") to be a memfs Volume instance",
+  "pass": false,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'matches a single path string' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'matches an array of paths' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'matches entry types from object input' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'matches glob patterns from a string value' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'matches glob patterns from array strings' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'matches typed glob patterns from object config' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'not: fails when entries are missing' > result 1`] = `
+{
+  "message": "Volume entries did not satisfy the expected entries",
+  "pass": false,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'not: matches an array of paths' > result 1`] = `
+{
+  "actual": {
+    "/foo.txt": "file",
+  },
+  "expected": {},
+  "message": "Expected volume entries not to satisfy the expected entries, but it did (found 1 match)",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'supports prefix option with relative paths' > result 1`] = `
+{
+  "message": "Volume satisfied the expected entries",
+  "pass": true,
+}
+`;
+
+exports[`toHaveVolumeEntries() > unit > 'throws for invalid entry type values' 1`] = `[TypeError: Invalid volume entries provided to hint(toHaveVolumeEntries). Expected entry type to be \`file\`, \`dir\`, \`symlink\`, \`any\`, got \`folder\`]`;
+
+exports[`toHaveVolumeEntries() > unit > 'throws for invalid path array values' 1`] = `[TypeError: Invalid volume entries provided to hint(toHaveVolumeEntries). Expected array item to be string | { path: string }, got \`42\`]`;
+
+exports[`toHaveVolumeEntries() > unit > 'throws for invalid pattern objects' 1`] = `[TypeError: Invalid volume entries provided to hint(toHaveVolumeEntries). Expected array item to be string | { path: string }, got \`{"path":123}\`]`;
+
+exports[`toHaveVolumeEntries() > unit > 'throws when array includes regular expression' 1`] = `[TypeError: Invalid volume entries provided to hint(toHaveVolumeEntries). Expected array item to be string | { path: string }, got \`{}\`]`;
+
+exports[`toHaveVolumeEntries() > unit > 'throws when pattern object uses regex path' 1`] = `[TypeError: Invalid volume entries provided to hint(toHaveVolumeEntries). Expected array item to be string | { path: string }, got \`{"path":{}}\`]`;

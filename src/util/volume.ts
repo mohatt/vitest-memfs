@@ -141,3 +141,42 @@ export async function writeVolumeToDir(
   const limit = pLimit(concurrency)
   await Promise.all(writeOps.map((op) => limit(op)))
 }
+
+export type VolumePathType = 'file' | 'dir' | 'symlink' | 'other'
+
+export type VolumePathEntry = [path: string, type: VolumePathType]
+
+export function scanVolumePaths(volume: Volume): VolumePathEntry[] {
+  const entries: VolumePathEntry[] = []
+  const stack = ['/']
+  const visited = new Set<string>()
+
+  while (stack.length > 0) {
+    const currPath = stack.pop()!
+    if (visited.has(currPath)) continue
+    visited.add(currPath)
+
+    const stats = volume.lstatSync(currPath)
+    if (currPath !== '/') {
+      entries.push([
+        currPath,
+        stats.isFile()
+          ? 'file'
+          : stats.isDirectory()
+            ? 'dir'
+            : stats.isSymbolicLink()
+              ? 'symlink'
+              : 'other',
+      ])
+    }
+
+    if (stats.isDirectory()) {
+      const children = volume.readdirSync(currPath) as string[]
+      for (const child of children) {
+        stack.push(path.posix.join(currPath, child))
+      }
+    }
+  }
+
+  return entries
+}
