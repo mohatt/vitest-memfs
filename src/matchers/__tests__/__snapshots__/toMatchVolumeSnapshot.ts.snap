@@ -48,7 +48,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'different files' [new] > result 1`] =
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty dir match' [fixture] > result 1`] = `
 {
-  "message": "Volumes matched",
+  "message": "Volume matched the snapshot at empty-dir",
   "pass": true,
 }
 `;
@@ -81,7 +81,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'empty dir' [new] > result 1`] = `
 
 exports[`toMatchVolumeSnapshot() > unit > 'empty volume' [fixture] > result 1`] = `
 {
-  "message": "Volumes matched",
+  "message": "Volume matched the snapshot at empty-vol",
   "pass": true,
 }
 `;
@@ -184,7 +184,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [new] > result 1`] = `
 
 exports[`toMatchVolumeSnapshot() > unit > 'respects contentMatch=ignore option' [fixture] > result 1`] = `
 {
-  "message": "Volumes matched",
+  "message": "Volume matched the snapshot at foo-bar",
   "pass": true,
 }
 `;
@@ -206,7 +206,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra optio
 
 exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option' [fixture] > result 1`] = `
 {
-  "message": "Volumes matched",
+  "message": "Volume matched the snapshot at foo-bar",
   "pass": true,
 }
 `;
@@ -227,7 +227,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing opt
 
 exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-missing option' [fixture] > result 1`] = `
 {
-  "message": "Volumes matched",
+  "message": "Volume matched the snapshot at foo-bar",
   "pass": true,
 }
 `;
@@ -247,7 +247,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option (mismatch)' [f
 
 exports[`toMatchVolumeSnapshot() > unit > 'respects prefix option' [fixture] > result 1`] = `
 {
-  "message": "Volumes matched",
+  "message": "Volume matched the snapshot at foo-dir",
   "pass": true,
 }
 `;
