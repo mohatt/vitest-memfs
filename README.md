@@ -25,7 +25,7 @@ $ pnpm add -D vitest-memfs
 Add a setup file to your Vitest config:
 
 ```javascript
-// `vite.config.js`
+// `vite.config.ts`
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -38,7 +38,7 @@ export default defineConfig({
 Setup file:
 
 ```typescript
-// tests-setup.ts
+// `tests-setup.ts`
 
 // Register all matchers
 import 'vitest-memfs/setup'
@@ -106,7 +106,7 @@ expect(vol).toHaveVolumeEntries({
 
 - Supports exact paths and glob patterns (negated globs like `!**/*.d.ts` are not supported).
 - Types can be `file` | `dir` | `symlink` | `any` (default).
-- `count` can enforce a minimum number of matches.
+- `count` can enforce a minimum number of matches (default: `1`).
 - Only existence/type are checked — file contents and symlink targets are ignored.
 
 ### toMatchVolume
@@ -143,13 +143,13 @@ This works like Vitest’s `toMatchSnapshot`, but for filesystem trees.
 ```typescript
 import { Volume } from 'memfs'
 
-it('matches volume snapshot', () => {
+it('matches volume snapshot', async () => {
   const vol = Volume.fromJSON({ '/foo.txt': 'hello' })
-  expect(vol).toMatchVolumeSnapshot('foo-snap')
+  await expect(vol).toMatchVolumeSnapshot('foo-snap')
 
   // prefix
   const vol3 = Volume.fromJSON({ '/foo.txt': 'hello', '/src/bar.txt': 'world' })
-  expect(vol3).toMatchVolumeSnapshot('src-snap', { prefix: '/src' })
+  await expect(vol3).toMatchVolumeSnapshot('src-snap', { prefix: '/src' })
   // only files under `/src` are persisted/compared
 })
 ```
