@@ -8,6 +8,7 @@ Useful when testing code that reads/writes to the filesystem without touching th
 
 - [Usage](#usage)
 - [Matchers](#matchers)
+  - [toHaveVolumeEntries](#toHaveVolumeEntries)
   - [toMatchVolume](#toMatchVolume)
   - [toMatchVolumeSnapshot](#toMatchVolumeSnapshot)
   - [Options](#options)
@@ -34,7 +35,7 @@ export default defineConfig({
 })
 ```
 
-Then extend Vitest’s matchers in your setup file:
+Setup file:
 
 ```typescript
 // tests-setup.ts
@@ -48,6 +49,65 @@ expect.extend({ toMatchVolume })
 ```
 
 ## Matchers
+
+### toHaveVolumeEntries
+
+Checks that certain paths or glob patterns exist in a `memfs` volume, with optional type checks.
+
+```typescript
+import { Volume } from 'memfs'
+
+it('checks that paths are present', () => {
+  const vol = Volume.fromJSON({
+    '/package.json': '{}',
+    '/foo.txt': 'hello',
+    '/src/index.ts': 'export {}',
+    '/src/utils/math.ts': 'export const add = () => {}',
+  })
+
+  // exact paths
+  expect(vol).toHaveVolumeEntries(['/foo.txt', '/src'])
+  // with type checks
+  expect(vol).toHaveVolumeEntries({
+    '/foo.txt': 'file',
+    '/src': 'dir',
+  })
+
+  // glob patterns
+  expect(vol).toHaveVolumeEntries(['*.txt', 'src/**/*.ts'])
+  expect(vol).toHaveVolumeEntries({ 'src/**/*.ts': { count: 3 } }) // ❌ found 2/3 files
+
+  // prefix + relative paths
+  expect(vol).toHaveVolumeEntries(['/foo.txt', 'utils/*.ts'], { prefix: '/src' })
+
+  // negated assertions
+  expect(vol).not.toHaveVolumeEntries(['package.json', 'src/**/*.ts'])
+})
+```
+
+**Supported Input Formats:**
+
+```typescript
+// string — single path or glob
+expect(vol).toHaveVolumeEntries('/foo.txt')
+expect(vol).toHaveVolumeEntries('src/**/*.ts')
+
+// array — mix of strings or objects
+expect(vol).toHaveVolumeEntries(['/foo.txt', { path: 'src/**/*.ts', type: 'file', count: 2 }])
+
+// object — mapping of path/glob → type or options
+expect(vol).toHaveVolumeEntries({
+  '/foo.txt': 'file',
+  'src/**/*.ts': { type: 'file', count: 2 },
+})
+```
+
+**Notes:**
+
+- Supports exact paths and glob patterns (negated globs like `!**/*.d.ts` are not supported).
+- Types can be `file` | `dir` | `symlink` | `any` (default).
+- `count` can enforce a minimum number of matches.
+- Only existence/type are checked — file contents and symlink targets are ignored.
 
 ### toMatchVolume
 
@@ -99,7 +159,7 @@ it('matches volume snapshot', () => {
 
 ### Options
 
-Both matchers support the same options:
+Both `toMatchVolume` and `toMatchVolumeSnapshot` support the same options:
 
 ```typescript
 interface VolumeMatcherOptions {
