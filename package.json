@@ -1,6 +1,6 @@
 {
   "name": "vitest-memfs",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Custom Vitest matchers for working with memfs",
   "keywords": [
     "vitest",

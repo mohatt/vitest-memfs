@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/mohatt/vitest-memfs/compare/v1.1.0...v1.2.0) (2025-09-25)
+
+
+### Features
+
+* add `toHaveVolumeEntries` matcher ([87c9568](https://github.com/mohatt/vitest-memfs/commit/87c9568313022136c20a74be338e9666942b4965))
+
 # [1.1.0](https://github.com/mohatt/vitest-memfs/compare/v1.0.1...v1.1.0) (2025-09-23)
 
 
