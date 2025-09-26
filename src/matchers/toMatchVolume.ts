@@ -1,9 +1,9 @@
 import { Volume, DirectoryJSON } from 'memfs'
 import { createMatcher, isPlainObject } from '@/util/common.js'
 import { volumeToMap } from '@/util/volume.js'
-import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
+import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
-export interface VolumeMatcherOptions extends VolumeCompareOptions {
+export interface VolumeMatcherOptions extends VolumeCompareOptions<false> {
   prefix?: string
 }
 
@@ -52,7 +52,8 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
   const receivedMap = volumeToMap(received, { prefix, withData })
   const expectedMap = volumeToMap(expectedVol, { prefix, withData })
 
-  const result = compareVolumeMaps(receivedMap, expectedMap, options)
+  const cmp = new VolumeCompare(receivedMap, expectedMap, options)
+  const result = cmp.compare()
   if (result.pass === true) {
     return {
       pass: true,

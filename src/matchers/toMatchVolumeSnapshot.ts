@@ -3,9 +3,9 @@ import type { SnapshotUpdateState } from 'vitest'
 import { Volume } from 'memfs'
 import { createMatcher, importActualFS } from '@/util/common.js'
 import { readDirToMap, volumeToMap, writeVolumeToDir } from '@/util/volume.js'
-import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
+import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
-export interface VolumeSnapshotMatcherOptions extends VolumeCompareOptions {
+export interface VolumeSnapshotMatcherOptions extends VolumeCompareOptions<true> {
   prefix?: string
 }
 
@@ -97,7 +97,8 @@ export default createMatcher(
     const expectedMap = await readDirToMap(snapshotDirPath, { prefix, withData })
     const receivedMap = volumeToMap(received, { prefix, withData })
 
-    const result = compareVolumeMaps(receivedMap, expectedMap, options)
+    const cmp = new VolumeCompare(receivedMap, expectedMap, options)
+    const result = await cmp.compare()
     updateSnapshotState(result.pass)
 
     if (result.pass === true) {
