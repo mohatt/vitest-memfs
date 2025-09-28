@@ -184,7 +184,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'reports mismatch when aborted using a
     "data": "hi",
   },
   "expected": File {
-    "data": "aborted",
+    "data": "__FILE_HANDLE_ABORT_READ__",
   },
   "message": "Found file content mismatch at \`/foo.txt\`",
   "pass": false,

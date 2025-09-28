@@ -77,7 +77,9 @@ export class FileHandle {
       const chunkSize = 512 * 1024
       const src = target.fs.createReadStream(target.path, { highWaterMark: chunkSize, signal })
       const dest = this.fs.createWriteStream(this.path, { highWaterMark: chunkSize, signal })
-      return pipeline(src, dest)
+      await pipeline(src, dest)
+      this.size = target.size
+      return
     }
 
     return this.write(await target.read(signal), signal)
@@ -190,9 +192,11 @@ async function gracefulAbort<R = void>(promise: Promise<R>, signal: AbortSignal,
 
 export function makeAbortDiff<T>(a: T, b: T): [T, T] {
   if (a === b)
-    return typeof b === 'string' ? [a, 'aborted#2' as T] : [a, Buffer.from('aborted#2') as T]
+    return typeof b === 'string'
+      ? [a, '__FILE_HANDLE_ABORT_HASH_2__' as T]
+      : [a, Buffer.from('__FILE_HANDLE_ABORT_READ_2__') as T]
   return [a, b]
 }
 
-const ABORT_READ = Buffer.from('aborted')
-const ABORT_HASH = 'aborted'
+const ABORT_READ = Buffer.from('__FILE_HANDLE_ABORT_READ__')
+const ABORT_HASH = '__FILE_HANDLE_ABORT_HASH__'

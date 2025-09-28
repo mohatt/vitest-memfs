@@ -297,7 +297,7 @@ export class VolumeCompare<Async extends boolean = false> {
       return undefined
     }
 
-    const limit = pLimit(this.options.concurrency ?? 16)
+    const limit = pLimit(this.options.concurrency ?? 32)
     const controller = new AbortController()
     const signal = this.options.abortSignal
       ? AbortSignal.any([controller.signal, this.options.abortSignal])

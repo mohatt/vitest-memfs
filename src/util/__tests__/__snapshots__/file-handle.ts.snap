@@ -1,0 +1,131 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FileHandle > compare() > reports size mismatches for large files without hashing 1`] = `
+{
+  "size": [
+    33555456,
+    33554432,
+  ],
+  "text": null,
+}
+`;
+
+exports[`FileHandle > compare() > respects aborted signals when reading from disk 1`] = `
+{
+  "buffer": [
+    "__FILE_HANDLE_ABORT_READ__",
+    "__FILE_HANDLE_ABORT_READ_2__",
+  ],
+  "text": true,
+}
+`;
+
+exports[`FileHandle > compare() > respects aborted signals when streaming large files 1`] = `
+{
+  "hash": [
+    "__FILE_HANDLE_ABORT_HASH__",
+    "__FILE_HANDLE_ABORT_HASH_2__",
+  ],
+  "text": null,
+}
+`;
+
+exports[`FileHandle > compare() > returns buffer diff for small text mismatches 1`] = `
+{
+  "buffer": [
+    "hello world",
+    "hello there",
+  ],
+  "text": true,
+}
+`;
+
+exports[`FileHandle > compare() > returns hash diff for large binary mismatches 1`] = `
+{
+  "hash": [
+    "75b8a3e7458f2b022cf60c265bd8d068",
+    "70d20736021f652f90ef4dc74b82b164",
+  ],
+  "text": null,
+}
+`;
+
+exports[`FileHandle > compareSync() > returns diff for small mismatches 1`] = `
+{
+  "buffer": [
+    "alpha",
+    "alpHa",
+  ],
+  "text": true,
+}
+`;
+
+exports[`FileHandle > makeBufferDiff() > captures binary mismatch near the start of the file 1`] = `
+{
+  "buffer": [
+    "00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "ffaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  ],
+  "text": false,
+}
+`;
+
+exports[`FileHandle > makeBufferDiff() > captures binary mismatch when files have different lengths 1`] = `
+{
+  "buffer": [
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbccddeeff",
+  ],
+  "text": false,
+}
+`;
+
+exports[`FileHandle > makeBufferDiff() > captures mismatch close to the start of the file 1`] = `
+{
+  "buffer": [
+    "XXYaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "YYZaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  ],
+  "text": true,
+}
+`;
+
+exports[`FileHandle > makeBufferDiff() > captures mismatch near the end of the file 1`] = `
+{
+  "buffer": [
+    "line
+line
+line
+line
+line
+line
+line
+line
+line
+line
+endXXY",
+    "line
+line
+line
+line
+line
+line
+line
+line
+line
+line
+endYYZ",
+  ],
+  "text": true,
+}
+`;
+
+exports[`FileHandle > makeBufferDiff() > captures mismatch near the middle with trimmed context 1`] = `
+{
+  "buffer": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaXbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaYYbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  ],
+  "text": true,
+}
+`;

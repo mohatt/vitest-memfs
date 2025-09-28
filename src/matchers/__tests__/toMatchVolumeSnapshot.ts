@@ -206,8 +206,8 @@ const fixtureCases = makeTests<TestCase>([
     expected: 'foo-dir',
     received: { '/foo.txt': 'hi' },
     options: { abortSignal: AbortSignal.abort() },
-    pass: false
-  }
+    pass: false,
+  },
 ])
 
 describe('toMatchVolumeSnapshot()', () => {
