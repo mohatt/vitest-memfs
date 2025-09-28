@@ -34,15 +34,16 @@ export default createMatcher(
       )
     }
 
-    const fsp = await importActualFS()
+    const fs = await importActualFS()
     const testId = `${currentTestName} > volume snapshots > ${snapshotDir}`
     const snapshotDirPath = path.join(path.dirname(snapshotState.snapshotPath), snapshotDir)
     const updateSnapshot: SnapshotUpdateState = (snapshotState as any)._updateSnapshot
-    const hasSnapshot = await fsp
+    const hasSnapshot = await fs.promises
       .lstat(snapshotDirPath)
       .then((s) => s.isDirectory())
       .catch(() => false)
-    const updateSnapshotState = (passed: boolean) => {
+
+    function updateSnapshotState(passed: boolean) {
       if (
         (hasSnapshot && updateSnapshot === 'all') ||
         (!hasSnapshot && (updateSnapshot === 'new' || updateSnapshot === 'all'))
@@ -78,9 +79,13 @@ export default createMatcher(
     }
 
     const prefix = options?.prefix ?? undefined
-    const withData = options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files'
     if (updateSnapshot === 'all' || (updateSnapshot !== 'none' && !hasSnapshot)) {
-      await writeVolumeToDir(received, snapshotDirPath, { prefix, withData, clear: true })
+      await writeVolumeToDir(received, snapshotDirPath, {
+        clear: true,
+        withData: options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files',
+        concurrency: options?.concurrency ?? undefined,
+        prefix,
+      })
       return {
         pass: updateSnapshotState(true),
         message: () => `${hasSnapshot ? 'Updated' : 'Created'} snapshot at ${snapshotDir}`,
@@ -94,10 +99,10 @@ export default createMatcher(
       }
     }
 
-    const expectedMap = await readDirToMap(snapshotDirPath, { prefix, withData })
-    const receivedMap = volumeToMap(received, { prefix, withData })
+    const expectedMap = await readDirToMap(snapshotDirPath, { prefix })
+    const receivedMap = volumeToMap(received, { prefix })
 
-    const cmp = new VolumeCompare(receivedMap, expectedMap, options)
+    const cmp = new VolumeCompare(receivedMap, expectedMap, { ...options, async: true })
     const result = await cmp.compare()
     updateSnapshotState(result.pass)
 

@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto'
-import { isText } from 'istextorbinary'
+import pLimit from 'p-limit'
 import type { VolumeMap, VolumeEntry } from './volume.js'
+import type { FileCompareResult } from './file-handle.js'
 
 export type VolumeCompareListMatch =
   | 'exact' // directory contents must match exactly (default)
@@ -28,6 +28,10 @@ export interface VolumeCompareOptions<Async extends boolean = boolean> {
   // Defaults to `false` to allow synchronous matching.
   // Useful for volumes with large file contents.
   async?: Async
+  // Optional concurrency limit for async comparisons. Defaults to `16`.
+  concurrency?: number
+  // Optional abort signal to cancel async comparison.
+  abortSignal?: AbortSignal
 }
 
 type VolumeCompareResult =
@@ -53,15 +57,23 @@ type DiffResult =
   | { kind: DiffKind.Missing; exp: DiffEntry; act?: never | undefined }
   | { kind: DiffKind.Extra; exp?: never | undefined; act: DiffEntry }
 
+interface DeferredDiffResult {
+  kind: 'deferred'
+  sync: () => DiffResult
+  async: (signal?: AbortSignal) => Promise<DiffResult>
+}
+
 type AsyncReturn<T, Async extends boolean> = Async extends true ? T | Promise<T> : T
 
+/**
+ * Compare two volume maps with optional async mode and configurable reporting.
+ */
 export class VolumeCompare<Async extends boolean = false> {
   private readonly options: VolumeCompareOptions<Async>
   private readonly compareFiles: boolean
   private readonly compareSymlinks: boolean
   private readonly ignoreMissingPaths: boolean
   private readonly ignoreExtraPaths: boolean
-  private readonly async: Async
 
   constructor(
     private readonly received: VolumeMap,
@@ -69,23 +81,29 @@ export class VolumeCompare<Async extends boolean = false> {
     options?: VolumeCompareOptions<Async>,
   ) {
     this.options = options ?? {}
-    const { listMatch, contentMatch, async } = this.options
+    const { listMatch, contentMatch } = this.options
     this.compareFiles = contentMatch !== 'ignore' && contentMatch !== 'ignore-files'
     this.compareSymlinks = contentMatch !== 'ignore' && contentMatch !== 'ignore-symlinks'
     this.ignoreMissingPaths = listMatch === 'ignore-missing'
     this.ignoreExtraPaths = listMatch === 'ignore-extra'
-    this.async = async
   }
 
-  compare(): AsyncReturn<VolumeCompareResult, Async> {
+  /**
+   * Run the comparison, respecting the chosen report mode and async setting.
+   */
+  compare() {
     if (this.options.report === 'all') {
-      return this.compareAll()
+      return this.compareAll() as AsyncReturn<VolumeCompareResult, Async>
     }
 
-    return this.compareFirst()
+    return this.compareFirst() as AsyncReturn<VolumeCompareResult, Async>
   }
 
-  private compareFirst(): AsyncReturn<VolumeCompareResult, Async> {
+  /**
+   * Stop on the first mismatch.
+   * Returns a promise when async mode is enabled.
+   */
+  private compareFirst(): VolumeCompareResult | Promise<VolumeCompareResult> {
     const { received, expected, ignoreExtraPaths, ignoreMissingPaths } = this
     // make sorted arrays for error reporting and better diffing
     const actualFiles = Object.keys(received).sort()
@@ -136,38 +154,49 @@ export class VolumeCompare<Async extends boolean = false> {
     }
 
     const filesToCheck = ignoreMissingPaths ? actualFiles : expectedFiles
-    for (const file of filesToCheck) {
-      const { kind, exp, act } = this.matchEntry(file, expected[file], received[file]) as DiffResult
-      if (kind === DiffKind.TypeMismatch) {
-        return {
-          pass: false,
-          message: () => `Found path type mismatch at \`${file}\``,
-          actual: act,
-          expected: exp,
+    const diffResult = this.matchEntries(
+      filesToCheck,
+      (file, { kind, exp, act }): VolumeCompareResult => {
+        if (kind === DiffKind.TypeMismatch) {
+          return {
+            pass: false,
+            message: () => `Found path type mismatch at \`${file}\``,
+            actual: act,
+            expected: exp,
+          }
         }
-      }
-      if (kind === DiffKind.FileMismatch) {
-        return {
-          pass: false,
-          message: () => `Found file content mismatch at \`${file}\``,
-          actual: act,
-          expected: exp,
+        if (kind === DiffKind.FileMismatch) {
+          return {
+            pass: false,
+            message: () => `Found file content mismatch at \`${file}\``,
+            actual: act,
+            expected: exp,
+          }
         }
-      }
-      if (kind === DiffKind.SymlinkMismatch) {
-        return {
-          pass: false,
-          message: () => `Found symlink target mismatch at \`${file}\``,
-          actual: act,
-          expected: exp,
+        if (kind === DiffKind.SymlinkMismatch) {
+          return {
+            pass: false,
+            message: () => `Found symlink target mismatch at \`${file}\``,
+            actual: act,
+            expected: exp,
+          }
         }
-      }
+        return null
+      },
+    )
+
+    function createResult(result: VolumeCompareResult): VolumeCompareResult {
+      return result ?? { pass: true }
     }
 
-    return { pass: true }
+    return diffResult instanceof Promise ? diffResult.then(createResult) : createResult(diffResult)
   }
 
-  private compareAll(): AsyncReturn<VolumeCompareResult, Async> {
+  /**
+   * Collect every mismatch and build a merged diff payload.
+   * Returns a promise when async mode is enabled.
+   */
+  private compareAll(): VolumeCompareResult | Promise<VolumeCompareResult> {
     const { received, expected, ignoreExtraPaths, ignoreMissingPaths } = this
     const actualDiff: Record<string, DiffEntry> = {}
     const expectedDiff: Record<string, DiffEntry> = {}
@@ -181,8 +210,7 @@ export class VolumeCompare<Async extends boolean = false> {
       : ignoreMissingPaths
         ? received
         : { ...received, ...expected }
-    for (const p in pathsToCheck) {
-      const { kind, exp, act } = this.matchEntry(p, expected[p], received[p]) as DiffResult
+    const diffResult = this.matchEntries(Object.keys(pathsToCheck), (p, { kind, exp, act }) => {
       switch (kind) {
         case DiffKind.TypeMismatch:
           expectedDiff[p] = exp
@@ -212,48 +240,140 @@ export class VolumeCompare<Async extends boolean = false> {
           actualDiff[p] = {}
           expectedDiff[p] = {}
       }
-    }
+    })
 
-    const total = missingCount + extraCount + contentCount + typeCount
-    if (total > 0) {
-      const parts: string[] = []
-      if (missingCount) parts.push(`${missingCount} missing path${missingCount > 1 ? 's' : ''}`)
-      if (extraCount) parts.push(`${extraCount} unexpected path${extraCount > 1 ? 's' : ''}`)
-      if (typeCount) parts.push(`${typeCount} path type mismatch${typeCount > 1 ? 'es' : ''}`)
-      if (contentCount) parts.push(`${contentCount} mismatched content`)
+    function createResult(): VolumeCompareResult {
+      const total = missingCount + extraCount + contentCount + typeCount
+      if (total > 0) {
+        const parts: string[] = []
+        if (missingCount) parts.push(`${missingCount} missing path${missingCount > 1 ? 's' : ''}`)
+        if (extraCount) parts.push(`${extraCount} unexpected path${extraCount > 1 ? 's' : ''}`)
+        if (typeCount) parts.push(`${typeCount} path type mismatch${typeCount > 1 ? 'es' : ''}`)
+        if (contentCount) parts.push(`${contentCount} mismatched content`)
 
-      return {
-        pass: false,
-        message: () =>
-          parts.length === 1
-            ? `Found ${parts[0]}` //
-            : `Found ${total} mismatches: ${parts.join(', ')}`,
-        actual: actualDiff,
-        expected: expectedDiff,
+        return {
+          pass: false,
+          message: () =>
+            parts.length === 1
+              ? `Found ${parts[0]}` //
+              : `Found ${total} mismatches: ${parts.join(', ')}`,
+          actual: actualDiff,
+          expected: expectedDiff,
+        }
       }
+
+      return { pass: true }
     }
 
-    return { pass: true }
+    return diffResult instanceof Promise ? diffResult.then(createResult) : createResult()
   }
 
-  private matchEntry(
-    path: string,
-    exp: VolumeEntry,
-    act: VolumeEntry,
-  ): AsyncReturn<DiffResult, Async> {
+  /**
+   * Iterate paths and feed diffs into the provided callback, handling sync vs async work.
+   */
+  private matchEntries<R = void>(
+    paths: string[],
+    callback: (path: string, diff: DiffResult) => R,
+  ): R | Promise<R | undefined> {
+    if (!this.options.async) {
+      const deferred: Array<() => R> = []
+      for (const path of paths) {
+        const exp = this.expected[path]
+        const act = this.received[path]
+        const diff = this.matchEntry(exp, act)
+        if (diff.kind === 'deferred') {
+          deferred.push(() => callback(path, diff.sync()))
+          continue
+        }
+        const result = callback(path, diff)
+        if (result) return result
+      }
+
+      for (const cb of deferred) {
+        const result = cb()
+        if (result) return result
+      }
+
+      return undefined
+    }
+
+    const limit = pLimit(this.options.concurrency ?? 16)
+    const controller = new AbortController()
+    const signal = this.options.abortSignal
+      ? AbortSignal.any([controller.signal, this.options.abortSignal])
+      : controller.signal
+
+    return new Promise<R | undefined>((resolve, reject) => {
+      let pending = 0
+      let done = false
+
+      function finish(value?: R | undefined, error?: unknown) {
+        if (done) return
+        done = true
+        controller.abort()
+        limit.clearQueue()
+        if (error) {
+          reject(error)
+        } else {
+          resolve(value)
+        }
+      }
+
+      for (const path of paths) {
+        if (done) break
+        const exp = this.expected[path]
+        const act = this.received[path]
+        const diff = this.matchEntry(exp, act)
+
+        if (diff.kind === 'deferred') {
+          pending++
+          limit(async () => {
+            try {
+              const diffResult = await diff.async(signal)
+              if (done) return
+              const result = callback(path, diffResult)
+              if (result) {
+                finish(result)
+              } else if (--pending === 0) {
+                finish(undefined)
+              }
+            } catch (err) {
+              finish(undefined, err)
+            }
+          })
+          continue
+        }
+
+        const result = callback(path, diff)
+        if (result) {
+          finish(result)
+          break
+        }
+      }
+
+      if (!done && pending === 0) {
+        finish(undefined)
+      }
+    })
+  }
+
+  /**
+   * Produce an immediate or a deferred diff for a single path.
+   */
+  private matchEntry(exp: VolumeEntry, act: VolumeEntry): DiffResult | DeferredDiffResult {
     if (exp && !act) {
-      return { kind: DiffKind.Missing, exp: this.makeDiff(path, exp) }
+      return { kind: DiffKind.Missing, exp: this.getEmptyDiff(exp) }
     }
 
     if (act && !exp) {
-      return { kind: DiffKind.Extra, act: this.makeDiff(path, act) }
+      return { kind: DiffKind.Extra, act: this.getEmptyDiff(act) }
     }
 
     if (exp.kind !== act.kind) {
       return {
         kind: DiffKind.TypeMismatch,
-        exp: this.makeDiff(path, exp),
-        act: this.makeDiff(path, act),
+        exp: this.getEmptyDiff(exp),
+        act: this.getEmptyDiff(act),
       }
     }
 
@@ -264,42 +384,57 @@ export class VolumeCompare<Async extends boolean = false> {
     ) {
       return {
         kind: DiffKind.SymlinkMismatch,
-        exp: this.makeDiff(path, exp),
-        act: this.makeDiff(path, act),
+        exp: new Symlink(exp.target),
+        act: new Symlink((act as typeof exp).target),
       }
     }
 
     if (exp.kind === 'file' && this.compareFiles) {
-      if (!exp.data.equals((act as typeof exp).data)) {
-        return {
-          kind: DiffKind.FileMismatch,
-          exp: this.makeDiff(path, exp),
-          act: this.makeDiff(path, act),
-        }
+      return {
+        kind: 'deferred',
+        sync: () => {
+          const fileDiff = exp.file.compareSync((act as typeof exp).file)
+          return fileDiff != null ? this.makeFileDiff(fileDiff) : { kind: DiffKind.Match }
+        },
+        async: async (signal) => {
+          const fileDiff = await exp.file.compare((act as typeof exp).file, signal)
+          return fileDiff != null ? this.makeFileDiff(fileDiff) : { kind: DiffKind.Match }
+        },
       }
     }
 
     return { kind: DiffKind.Match }
   }
 
-  private makeDiff(path: string, entry: VolumeEntry): DiffEntry {
+  private makeFileDiff(diff: FileCompareResult): DiffResult {
+    let exp: DiffEntry
+    let act: DiffEntry
+    const Type = diff.text ? File : BinaryFile
+
+    if ('buffer' in diff) {
+      exp = new Type(diff.buffer[0])
+      act = new Type(diff.buffer[1])
+    } else if ('hash' in diff) {
+      exp = new Type(null, diff.hash[0])
+      act = new Type(null, diff.hash[1])
+    } else {
+      exp = new Type(null, null, diff.size[0])
+      act = new Type(null, null, diff.size[1])
+    }
+
+    return { kind: DiffKind.FileMismatch, exp, act }
+  }
+
+  private getEmptyDiff(entry: VolumeEntry): DiffEntry {
     if (entry.kind === 'empty-dir') {
       return EMPTY_DIR_MARKER
     }
 
     if (entry.kind === 'file') {
-      if (this.compareFiles) {
-        return isText(path, entry.data) //
-          ? new File(entry.data)
-          : new BinaryFile(entry.data)
-      }
-
       return EMPTY_FILE_MARKER
     }
 
-    return this.compareSymlinks //
-      ? new Symlink(entry.target)
-      : EMPTY_SYMLINK_MARKER
+    return EMPTY_SYMLINK_MARKER
   }
 }
 
@@ -307,32 +442,30 @@ class Directory {}
 
 class File {
   declare data?: string
-  constructor(buff?: Buffer) {
-    if (buff) {
-      this.data = buff.toString('utf8')
-    }
+  declare size?: number
+  declare hash?: string
+  constructor(data?: Buffer, hash?: string, size?: number) {
+    if (data != null) this.data = data.toString('utf-8')
+    if (size != null) this.size = size
+    if (hash != null) this.hash = hash
   }
 }
 
 class BinaryFile {
-  hash: string
-  length: number
-  preview: string
-  constructor(buff: Buffer, trim = 32) {
-    this.hash = createHash('sha1').update(buff).digest('hex')
-    this.length = buff.length
-    const head = buff.subarray(0, trim).toString('base64')
-    const tail = buff.length > trim ? buff.subarray(-trim).toString('base64') : null
-    this.preview = tail ? `${head}...${tail}` : head
+  declare data?: string
+  declare size?: number
+  declare hash?: string
+  constructor(data?: Buffer, hash?: string, size?: number) {
+    if (data != null) this.data = data.toString('base64')
+    if (size != null) this.size = size
+    if (hash != null) this.hash = hash
   }
 }
 
 class Symlink {
   declare target?: string
   constructor(target?: string) {
-    if (target != null) {
-      this.target = target
-    }
+    if (target != null) this.target = target
   }
 }
 

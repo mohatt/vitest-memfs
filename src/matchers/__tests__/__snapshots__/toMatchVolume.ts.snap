@@ -59,14 +59,10 @@ exports[`toMatchVolume() > unit > 'binary files match' > result-all 1`] = `
 exports[`toMatchVolume() > unit > 'binary files mismatch' > result 1`] = `
 {
   "actual": BinaryFile {
-    "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
-    "length": 4,
-    "preview": "3q2+7w==",
+    "data": "3q2+7w==",
   },
   "expected": BinaryFile {
-    "hash": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
-    "length": 4,
-    "preview": "yv66vg==",
+    "data": "yv66vg==",
   },
   "message": "Found file content mismatch at \`/bin.dat\`",
   "pass": false,
@@ -77,16 +73,12 @@ exports[`toMatchVolume() > unit > 'binary files mismatch' > result-all 1`] = `
 {
   "actual": {
     "/bin.dat": BinaryFile {
-      "hash": "d78f8bb992a56a597f6c7a1fb918bb78271367eb",
-      "length": 4,
-      "preview": "3q2+7w==",
+      "data": "3q2+7w==",
     },
   },
   "expected": {
     "/bin.dat": BinaryFile {
-      "hash": "1465dad126d32bf7aa5d3b95a5c7c331cdff34df",
-      "length": 4,
-      "preview": "yv66vg==",
+      "data": "yv66vg==",
     },
   },
   "message": "Found 1 mismatched content",
@@ -181,9 +173,7 @@ exports[`toMatchVolume() > unit > 'extra file' > result 1`] = `
 exports[`toMatchVolume() > unit > 'extra file' > result-all 1`] = `
 {
   "actual": {
-    "/bar.txt": File {
-      "data": "extra",
-    },
+    "/bar.txt": File {},
     "/foo.txt": {},
   },
   "expected": {
@@ -224,14 +214,10 @@ exports[`toMatchVolume() > unit > 'invalid type (received)' > result 1`] = `
 exports[`toMatchVolume() > unit > 'large binary file mismatch' > result 1`] = `
 {
   "actual": BinaryFile {
-    "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
-    "length": 100000,
-    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+    "data": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
   },
   "expected": BinaryFile {
-    "hash": "814bf2767d4339019bf26a4d3a35066ad9c0f6c7",
-    "length": 100000,
-    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+    "data": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq7qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
   },
   "message": "Found file content mismatch at \`/big.bin\`",
   "pass": false,
@@ -242,16 +228,12 @@ exports[`toMatchVolume() > unit > 'large binary file mismatch' > result-all 1`] 
 {
   "actual": {
     "/big.bin": BinaryFile {
-      "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
-      "length": 100000,
-      "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+      "data": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
     },
   },
   "expected": {
     "/big.bin": BinaryFile {
-      "hash": "814bf2767d4339019bf26a4d3a35066ad9c0f6c7",
-      "length": 100000,
-      "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+      "data": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq7qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
     },
   },
   "message": "Found 1 mismatched content",
@@ -279,9 +261,7 @@ exports[`toMatchVolume() > unit > 'missing file' > result-all 1`] = `
     "/foo.txt": {},
   },
   "expected": {
-    "/bar.txt": File {
-      "data": "extra",
-    },
+    "/bar.txt": File {},
     "/foo.txt": {},
   },
   "message": "Found 1 missing path",
@@ -336,9 +316,7 @@ exports[`toMatchVolume() > unit > 'not: extra file' > result 1`] = `
 exports[`toMatchVolume() > unit > 'not: extra file' > result-all 1`] = `
 {
   "actual": {
-    "/bar.txt": File {
-      "data": "extra",
-    },
+    "/bar.txt": File {},
     "/foo.txt": {},
   },
   "expected": {
@@ -449,9 +427,7 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-extra option (misma
     "/foo.txt": {},
   },
   "expected": {
-    "/bar.txt": File {
-      "data": "hey",
-    },
+    "/bar.txt": File {},
     "/foo.txt": {},
   },
   "message": "Found 1 missing path",
@@ -490,9 +466,7 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option (mis
 exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option (mismatch)' > result-all 1`] = `
 {
   "actual": {
-    "/extra.txt": File {
-      "data": "extra",
-    },
+    "/extra.txt": File {},
     "/foo.txt": {},
   },
   "expected": {

@@ -48,9 +48,8 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
   }
 
   const prefix = options?.prefix ?? undefined
-  const withData = options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files'
-  const receivedMap = volumeToMap(received, { prefix, withData })
-  const expectedMap = volumeToMap(expectedVol, { prefix, withData })
+  const receivedMap = volumeToMap(received, { prefix })
+  const expectedMap = volumeToMap(expectedVol, { prefix })
 
   const cmp = new VolumeCompare(receivedMap, expectedMap, options)
   const result = cmp.compare()
