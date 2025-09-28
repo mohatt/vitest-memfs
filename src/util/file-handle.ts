@@ -1,7 +1,7 @@
-import { Volume } from 'memfs'
-import { isText } from 'istextorbinary'
-import { createHash } from 'node:crypto'
 import { pipeline } from 'node:stream/promises'
+import { createHash } from 'node:crypto'
+import { Volume } from 'memfs'
+import isBinaryPath from 'is-binary-path'
 
 export type FileCompareResult =
   | { text: boolean; hash: [actual: string, expected: string] }
@@ -150,7 +150,7 @@ export class FileHandle {
       }
     }
 
-    const text = isText(this.path, data)
+    const text = isText(this.path)
     const [actual, expected] = this.makeBufferDiff(data, targetData, text ? 128 : 64)
     return { text, buffer: [actual, expected] }
   }
@@ -176,6 +176,10 @@ export class FileHandle {
       targetData.subarray(start, Math.min(end, targetData.length)),
     ]
   }
+}
+
+function isText(filePath: string) {
+  return !isBinaryPath(filePath)
 }
 
 function formatMB(bytes: number) {

@@ -70,6 +70,15 @@ describe('FileHandle', () => {
       expect(serializeDiff(diff)).toMatchSnapshot()
     })
 
+    it('switches to hash diff when buffer length exceeds the threshold', async () => {
+      const size = 2.5 * 1024 * 1024 + 1024
+      const a = makeVolHandle('/big.bin', Buffer.alloc(size, 0xaa))
+      const b = makeVolHandle('/big.bin', Buffer.alloc(1024 * 1024, 0xbb))
+
+      const diff = await a.compare(b)
+      expect(serializeDiff(diff)).toMatchSnapshot()
+    })
+
     it('compares volume and real files', async () => {
       const dir = makeTempDir('file-handle-compare-')
       const diskPath = path.join(dir, 'mirror.txt')

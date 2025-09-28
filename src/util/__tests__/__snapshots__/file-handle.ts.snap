@@ -6,7 +6,7 @@ exports[`FileHandle > compare() > reports size mismatches for large files withou
     33555456,
     33554432,
   ],
-  "text": null,
+  "text": false,
 }
 `;
 
@@ -26,7 +26,7 @@ exports[`FileHandle > compare() > respects aborted signals when streaming large 
     "__FILE_HANDLE_ABORT_HASH__",
     "__FILE_HANDLE_ABORT_HASH_2__",
   ],
-  "text": null,
+  "text": false,
 }
 `;
 
@@ -46,7 +46,17 @@ exports[`FileHandle > compare() > returns hash diff for large binary mismatches 
     "75b8a3e7458f2b022cf60c265bd8d068",
     "70d20736021f652f90ef4dc74b82b164",
   ],
-  "text": null,
+  "text": false,
+}
+`;
+
+exports[`FileHandle > compare() > switches to hash diff when buffer length exceeds the threshold 1`] = `
+{
+  "hash": [
+    "e40b242aac87f6357360de7c8dfa5e8e",
+    "3c46dd83ad455954c189660f2653ac6b",
+  ],
+  "text": false,
 }
 `;
 

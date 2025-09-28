@@ -81,7 +81,7 @@
   "dependencies": {
     "glob-to-regex.js": "^1.0.0",
     "is-glob": "4.0.0",
-    "istextorbinary": "^9.0.0",
+    "is-binary-path": "^3.0.0",
     "p-limit": "^7.0.0"
   },
   "devDependencies": {
