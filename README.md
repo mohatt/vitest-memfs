@@ -167,6 +167,8 @@ interface VolumeMatcherOptions {
   listMatch?: 'exact' | 'ignore-extra' | 'ignore-missing'
   contentMatch?: 'all' | 'ignore' | 'ignore-files' | 'ignore-symlinks'
   report?: 'first' | 'all'
+  async?: boolean
+  concurrency?: number
 }
 ```
 
@@ -184,6 +186,11 @@ interface VolumeMatcherOptions {
 - **report**
   - `first` → stop on the first mismatch (default).
   - `all` → collect all mismatches and show a combined diff.
+- **async**
+  - Run comparisons asynchronously (enabled by default for `toMatchVolumeSnapshot`).
+- **concurrency**
+  - Limit async comparisons to N files at a time (default: `32`).
+  - Useful for throttling async work for large fixtures.
 
 ## License
 
