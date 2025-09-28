@@ -7,7 +7,7 @@ import { vi, expect } from 'vitest'
  * in a Vitest setup file it will return the mock instead.
  */
 export async function importActualFS() {
-  return vi.importActual<typeof import('fs/promises')>('fs/promises')
+  return vi.importActual<typeof import('fs')>('fs')
 }
 
 export function isPlainObject(value: unknown): value is Record<string, any> {
