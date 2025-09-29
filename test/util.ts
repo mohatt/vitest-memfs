@@ -33,7 +33,8 @@ export async function pathToMap(dirPath: string) {
 
   function walk(node: SnapshotNode, curr: string) {
     if (!node) return
-    const key = path.posix.resolve('/', curr.slice(dirPath.length))
+    const rel = path.relative(dirPath, curr)
+    const key = path.posix.join('/', rel.split(path.sep).join('/'))
     const [type, meta, third] = node
 
     if (type === 0) {
