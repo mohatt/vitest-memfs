@@ -83,7 +83,7 @@ export async function readDirToMap(targetDirPath: string, options?: ReadDirToMap
         } else if (entry.isSymbolicLink()) {
           map[key] = {
             kind: 'symlink',
-            target: await limit(() => fs.promises.readlink(abs)),
+            target: normalizeLinkTarget(await limit(() => fs.promises.readlink(abs))),
           }
         }
       }),
@@ -94,10 +94,18 @@ export async function readDirToMap(targetDirPath: string, options?: ReadDirToMap
   return map
 }
 
-function normalizeRelative(from: string, to: string, prefix = '/'): string {
+function normalizeRelative(from: string, to: string, prefix = '/') {
   const rel = path.relative(from, to)
   const relPosix = path.sep === '/' ? rel : rel.split(path.sep).join('/')
   return path.posix.join(prefix, relPosix)
+}
+
+function normalizeLinkTarget(target: string) {
+  if (path.sep !== '/') {
+    const slice = /^[A-Za-z]:/.test(target) ? target.slice(2) : target
+    return slice.split(path.sep).join('/')
+  }
+  return target
 }
 
 export interface WriteVolumeToDirOptions extends VolumeToMapOptions {

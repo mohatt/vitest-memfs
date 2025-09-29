@@ -57,10 +57,9 @@ export async function pathToMap(dirPath: string) {
 }
 
 function normalizeLinkTarget(target: string) {
-  if (path.sep !== '/' && /^[A-Za-z]:/.test(target)) {
-    const slice = target.slice(2)
-    const cleaned = slice.split(path.sep).filter(Boolean).join('/')
-    return `/${cleaned}`
+  if (path.sep !== '/') {
+    const slice = /^[A-Za-z]:/.test(target) ? target.slice(2) : target
+    return slice.split(path.sep).join('/')
   }
   return target
 }
