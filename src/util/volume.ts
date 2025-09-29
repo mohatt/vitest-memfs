@@ -55,7 +55,7 @@ export interface ReadDirToMapOptions extends VolumeToMapOptions {
 
 export async function readDirToMap(targetDirPath: string, options?: ReadDirToMapOptions) {
   const fs = await importActualFS()
-  const { prefix = '', concurrency = 48 } = options ?? {}
+  const { prefix = '/', concurrency = 48 } = options ?? {}
   const map: VolumeMap = Object.create(null)
 
   const limit = pLimit(concurrency)
@@ -63,15 +63,14 @@ export async function readDirToMap(targetDirPath: string, options?: ReadDirToMap
   async function walk(dirPath: string) {
     const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
     if (entries.length === 0) {
-      const rel = path.posix.relative(targetDirPath, dirPath)
-      map[path.posix.join('/', prefix, rel)] = { kind: 'empty-dir' }
+      const key = normalizeRelative(targetDirPath, dirPath, prefix)
+      map[key] = { kind: 'empty-dir' }
     }
 
     await Promise.all(
       entries.map(async (entry) => {
         const abs = path.join(dirPath, entry.name)
-        const rel = path.posix.relative(targetDirPath, abs)
-        const key = path.posix.join('/', prefix, rel)
+        const key = normalizeRelative(targetDirPath, abs, prefix)
 
         if (entry.isDirectory()) {
           await walk(abs)
@@ -95,6 +94,12 @@ export async function readDirToMap(targetDirPath: string, options?: ReadDirToMap
   return map
 }
 
+function normalizeRelative(from: string, to: string, prefix = '/'): string {
+  const rel = path.relative(from, to)
+  const relPosix = path.sep === '/' ? rel : rel.split(path.sep).join('/')
+  return path.posix.join(prefix, relPosix)
+}
+
 export interface WriteVolumeToDirOptions extends VolumeToMapOptions {
   clear?: boolean
   withData?: boolean
@@ -107,9 +112,8 @@ export async function writeVolumeToDir(
   options?: WriteVolumeToDirOptions,
 ) {
   const fs = await importActualFS()
-  const { prefix, clear, withData = true, concurrency = 32 } = options ?? {}
-  const realPrefix = (prefix ? path.posix.resolve('/', prefix) : '') + '/'
-  const map = volumeToMap(volume, { prefix: realPrefix })
+  const { prefix = '/', clear, withData = true, concurrency = 32 } = options ?? {}
+  const map = volumeToMap(volume, { prefix })
 
   if (clear) {
     await fs.promises.rm(targetDirPath, { recursive: true, force: true })
@@ -120,7 +124,7 @@ export async function writeVolumeToDir(
 
   for (const abs in map) {
     // strip prefix
-    const rel = abs.slice(realPrefix.length)
+    const rel = abs.slice(prefix.length)
     const targetPath = path.join(targetDirPath, rel)
     const entry = map[abs]
 

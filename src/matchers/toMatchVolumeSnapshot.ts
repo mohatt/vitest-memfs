@@ -1,7 +1,7 @@
 import path from 'path'
 import type { SnapshotUpdateState } from 'vitest'
 import { Volume } from 'memfs'
-import { createMatcher, importActualFS } from '@/util/common.js'
+import { createMatcher, importActualFS, resolvePrefix } from '@/util/common.js'
 import { readDirToMap, volumeToMap, writeVolumeToDir } from '@/util/volume.js'
 import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
@@ -78,7 +78,7 @@ export default createMatcher(
       }
     }
 
-    const prefix = options?.prefix ?? undefined
+    const prefix = resolvePrefix(options?.prefix)
     if (updateSnapshot === 'all' || (updateSnapshot !== 'none' && !hasSnapshot)) {
       await writeVolumeToDir(received, snapshotDirPath, {
         clear: true,

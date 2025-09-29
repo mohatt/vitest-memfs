@@ -1,6 +1,6 @@
 import isGlob from 'is-glob'
 import { toRegex } from 'glob-to-regex.js'
-import { isPlainObject, resolveAbsPath, resolvePrefix } from './common.js'
+import { isPlainObject, resolveAbsPath } from './common.js'
 import type { VolumePathType, VolumePathEntry } from './volume.js'
 
 export type VolumeEntryType = Exclude<VolumePathType, 'other'> | 'any'
@@ -21,12 +21,11 @@ export type VolumeEntries =
 
 export type MatchRules = Map<string, MatchRule>
 
-export function createMatchRules(input: VolumeEntries, prefix?: string): MatchRules {
-  const basePrefix = resolvePrefix(prefix)
+export function createMatchRules(input: VolumeEntries, prefix = '/'): MatchRules {
   const rules: MatchRules = new Map()
 
   function addRule(path: string, opts?: VolumeEntryRecord) {
-    const entry = createMatchRule(path, basePrefix, opts)
+    const entry = createMatchRule(path, prefix, opts)
     rules.set(entry.identifier, entry)
   }
 

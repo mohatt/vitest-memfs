@@ -491,6 +491,20 @@ exports[`toMatchVolume() > unit > 'respects listMatch=ignore-missing option' > r
 }
 `;
 
+exports[`toMatchVolume() > unit > 'respects prefix option (json input)' > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects prefix option (json input)' > result-all 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
 exports[`toMatchVolume() > unit > 'respects prefix option (received)' > result 1`] = `
 {
   "message": "Volumes matched",
