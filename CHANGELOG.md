@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/mohatt/vitest-memfs/compare/v1.3.0...v1.3.1) (2025-09-29)
+
+
+### Bug Fixes
+
+* **toMatchVolume:** fix types and result promise when using `async` ([7d61c14](https://github.com/mohatt/vitest-memfs/commit/7d61c140e353108aa6ebd1c92f8a8240ec935bee))
+
 # [1.3.0](https://github.com/mohatt/vitest-memfs/compare/v1.2.0...v1.3.0) (2025-09-29)
 
 
