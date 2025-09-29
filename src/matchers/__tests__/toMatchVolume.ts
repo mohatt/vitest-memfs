@@ -337,4 +337,14 @@ describe('toMatchVolume()', () => {
     it.only.each(cases.only)('$name', testRunnerInteg)
     it.skip.each(cases.skip)('$name', testRunnerInteg)
   })
+
+  describe.concurrent('concurrent', () => {
+    it('works correctly', ({ expect }) => {
+      expect(makeVol({ '/foo.txt': 'hi' })).toMatchVolume(makeVol({ '/foo.txt': 'hi' }))
+    })
+
+    it('works correctly with .not', ({ expect }) => {
+      expect(makeVol()).not.toMatchVolume(makeVol({ '/foo.txt': 'hi' }))
+    })
+  })
 })

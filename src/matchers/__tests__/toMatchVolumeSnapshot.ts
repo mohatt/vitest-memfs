@@ -308,4 +308,17 @@ describe('toMatchVolumeSnapshot()', () => {
       ).rejects.toThrow(/cannot be used with `not`/)
     })
   })
+
+  describe.concurrent('concurrent', () => {
+    it('works correctly', async ({ expect }) => {
+      const vol = makeVol({
+        '/foo.txt': 'hi',
+        '/bin/data.bin': Buffer.alloc(100_000, 0xbb),
+      })
+      vol.symlinkSync('/foo.txt', '/bin/foo-link.txt')
+      await expect(vol).toMatchVolumeSnapshot('test')
+    })
+
+    it('empty test')
+  })
 })

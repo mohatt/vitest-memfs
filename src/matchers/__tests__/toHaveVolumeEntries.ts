@@ -277,4 +277,20 @@ describe('toHaveVolumeEntries()', () => {
     it.only.each(cases.only)('$name', testRunnerInteg)
     it.skip.each(cases.skip)('$name', testRunnerInteg)
   })
+
+  describe.concurrent('concurrent', () => {
+    it('works correctly', async ({ expect }) => {
+      const vol = makeVol({
+        '/src/index.ts': 'export {}',
+        '/src/utils/math.ts': 'export const add = () => {}',
+        '/src/styles.css': 'body {}',
+      })
+      expect(vol).toHaveVolumeEntries({ 'src/**/*.ts': 'file' })
+    })
+
+    it('works correctly with .not', ({ expect }) => {
+      const vol = makeVol({ '/index.ts': 'export {}' })
+      expect(vol).not.toHaveVolumeEntries({ 'src/**/*.js': 'file' })
+    })
+  })
 })
