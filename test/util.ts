@@ -48,10 +48,19 @@ export async function pathToMap(dirPath: string) {
     } else if (type === 1) {
       map[key] = ['file', Buffer.from(third).toString('base64')]
     } else if (type === 2) {
-      map[key] = ['symlink', meta.target]
+      map[key] = ['symlink', normalizeLinkTarget(meta.target)]
     }
   }
 
   walk(rootNode, dirPath)
   return map
+}
+
+function normalizeLinkTarget(target: string) {
+  if (path.sep !== '/' && /^[A-Za-z]:/.test(target)) {
+    const slice = target.slice(2)
+    const cleaned = slice.split(path.sep).filter(Boolean).join('/')
+    return `/${cleaned}`
+  }
+  return target
 }
