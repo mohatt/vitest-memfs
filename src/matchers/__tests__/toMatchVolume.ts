@@ -193,6 +193,13 @@ const cases = makeTests<TestCase>([
     pass: true,
   },
   {
+    name: 'respects prefix option (json input)',
+    received: { '/src/foo.txt': 'hi', '/bar.txt': 'extra' },
+    expected: () => ({ './foo.txt': 'hi' }) as any,
+    options: { prefix: '/src' },
+    pass: true,
+  },
+  {
     name: 'binary files match',
     received: () => {
       const v = makeVol()

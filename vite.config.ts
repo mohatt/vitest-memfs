@@ -4,7 +4,7 @@ import { defineConfig, defaultExclude } from 'vitest/config'
 export default defineConfig({
   test: {
     include: ['**/*.test.?(c|m)[jt]s?(x)', '**/__tests__/*.?(c|m)[jt]s?(x)'],
-    exclude: [...defaultExclude, '**/__fixtures__'],
+    exclude: [...defaultExclude, '**/__fixtures__', '**/*.bench.ts'],
     setupFiles: [`./test/setup-test${process.env.USE_FS_MOCK ? '-vfs' : ''}.ts`],
     expandSnapshotDiff: true,
     coverage: {

@@ -190,6 +190,24 @@ const fixtureCases = makeTests<TestCase>([
     options: { contentMatch: 'ignore' },
     pass: true,
   },
+  {
+    name: 'respects concurrency option',
+    received: () => {
+      const v = makeVol({ '/foo.txt': 'hi', '/bar.txt': 'hey' })
+      v.symlinkSync('/target1.txt', '/link.txt')
+      return v
+    },
+    expected: 'foo-bar',
+    options: { concurrency: 1 },
+    pass: true,
+  },
+  {
+    name: 'reports mismatch when aborted using abortSignal',
+    expected: 'foo-dir',
+    received: { '/foo.txt': 'hi' },
+    options: { abortSignal: AbortSignal.abort() },
+    pass: false,
+  },
 ])
 
 describe('toMatchVolumeSnapshot()', () => {

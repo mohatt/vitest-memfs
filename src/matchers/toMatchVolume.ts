@@ -1,9 +1,9 @@
 import { Volume, DirectoryJSON } from 'memfs'
-import { createMatcher, isPlainObject } from '@/util/common.js'
+import { createMatcher, isPlainObject, resolvePrefix, resolveAbsPath } from '@/util/common.js'
 import { volumeToMap } from '@/util/volume.js'
-import { compareVolumeMaps, VolumeCompareOptions } from '@/util/volume-compare.js'
+import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
-export interface VolumeMatcherOptions extends VolumeCompareOptions {
+export interface VolumeMatcherOptions extends VolumeCompareOptions<false> {
   prefix?: string
 }
 
@@ -27,11 +27,19 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
     }
   }
 
+  const prefix = resolvePrefix(options?.prefix)
   let expectedVol: Volume
   if (expected instanceof Volume) {
     expectedVol = expected
   } else if (isPlainObject(expected)) {
-    expectedVol = Volume.fromJSON(expected)
+    let resolved = expected
+    if (prefix !== '/') {
+      resolved = {}
+      for (const key of Object.keys(expected)) {
+        resolved[resolveAbsPath(key, prefix)] = expected[key]
+      }
+    }
+    expectedVol = Volume.fromJSON(resolved)
   } else {
     throw new TypeError(
       `You must provide a memfs Volume instance or plain JSON object to ${utils.matcherHint(
@@ -47,12 +55,11 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
     }
   }
 
-  const prefix = options?.prefix ?? undefined
-  const withData = options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files'
-  const receivedMap = volumeToMap(received, { prefix, withData })
-  const expectedMap = volumeToMap(expectedVol, { prefix, withData })
+  const receivedMap = volumeToMap(received, { prefix })
+  const expectedMap = volumeToMap(expectedVol, { prefix })
 
-  const result = compareVolumeMaps(receivedMap, expectedMap, options)
+  const cmp = new VolumeCompare(receivedMap, expectedMap, options)
+  const result = cmp.compare()
   if (result.pass === true) {
     return {
       pass: true,

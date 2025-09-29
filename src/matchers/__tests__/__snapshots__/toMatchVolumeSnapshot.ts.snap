@@ -3,14 +3,10 @@
 exports[`toMatchVolumeSnapshot() > unit > 'binary mismatch' [fixture] > result 1`] = `
 {
   "actual": BinaryFile {
-    "hash": "84a8811d7cd58ccbe862c1f94a00366c12440816",
-    "length": 100000,
-    "preview": "u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=...u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7s=",
+    "data": "u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7uw==",
   },
   "expected": BinaryFile {
-    "hash": "cd561c0d1e53dbd0cd390f4b2cd3728db7dd71fc",
-    "length": 100000,
-    "preview": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=...qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=",
+    "data": "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==",
   },
   "message": "Found file content mismatch at \`/data.bin\`",
   "pass": false,
@@ -182,6 +178,26 @@ exports[`toMatchVolumeSnapshot() > unit > 'prefix option' [new] > result 1`] = `
 }
 `;
 
+exports[`toMatchVolumeSnapshot() > unit > 'reports mismatch when aborted using abortSignal' [fixture] > result 1`] = `
+{
+  "actual": File {
+    "data": "hi",
+  },
+  "expected": File {
+    "data": "__FILE_HANDLE_ABORT_READ__",
+  },
+  "message": "Found file content mismatch at \`/foo.txt\`",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects concurrency option' [fixture] > result 1`] = `
+{
+  "message": "Volume matched the snapshot at foo-bar",
+  "pass": true,
+}
+`;
+
 exports[`toMatchVolumeSnapshot() > unit > 'respects contentMatch=ignore option' [fixture] > result 1`] = `
 {
   "message": "Volume matched the snapshot at foo-bar",
@@ -258,13 +274,9 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with igno
     "/foo.txt": {},
   },
   "expected": {
-    "/bar.txt": File {
-      "data": "hey",
-    },
+    "/bar.txt": File {},
     "/foo.txt": {},
-    "/link.txt": Symlink {
-      "target": "/target1.txt",
-    },
+    "/link.txt": Symlink {},
   },
   "message": "Found 2 missing paths",
   "pass": false,
@@ -274,9 +286,7 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with igno
 exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with ignore-missing)' [fixture] > result 1`] = `
 {
   "actual": {
-    "/extra.txt": File {
-      "data": "extra",
-    },
+    "/extra.txt": File {},
     "/foo.txt": {},
   },
   "expected": {
@@ -290,19 +300,13 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option (with igno
 exports[`toMatchVolumeSnapshot() > unit > 'respects report=all option' [fixture] > result 1`] = `
 {
   "actual": {
-    "/extra.txt": File {
-      "data": "extra",
-    },
+    "/extra.txt": File {},
     "/foo.txt": {},
   },
   "expected": {
-    "/bar.txt": File {
-      "data": "hey",
-    },
+    "/bar.txt": File {},
     "/foo.txt": {},
-    "/link.txt": Symlink {
-      "target": "/target1.txt",
-    },
+    "/link.txt": Symlink {},
   },
   "message": "Found 3 mismatches: 2 missing paths, 1 unexpected path",
   "pass": false,

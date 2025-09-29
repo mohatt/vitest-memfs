@@ -1,5 +1,5 @@
 import { Volume } from 'memfs'
-import { createMatcher } from '@/util/common.js'
+import { createMatcher, resolvePrefix } from '@/util/common.js'
 import { scanVolumePaths } from '@/util/volume.js'
 import { createMatchRules, matchEntries, VolumeEntries, MatchRules } from '@/util/volume-entries.js'
 
@@ -33,7 +33,8 @@ export default createMatcher('toHaveVolumeEntries', function (received, expected
 
   let rules: MatchRules
   try {
-    rules = createMatchRules(expected, options?.prefix)
+    const prefix = resolvePrefix(options?.prefix)
+    rules = createMatchRules(expected, prefix)
   } catch (error) {
     if (error instanceof Error) {
       throw new TypeError(

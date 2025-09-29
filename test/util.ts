@@ -33,7 +33,8 @@ export async function pathToMap(dirPath: string) {
 
   function walk(node: SnapshotNode, curr: string) {
     if (!node) return
-    const key = path.posix.resolve('/', curr.slice(dirPath.length))
+    const rel = path.relative(dirPath, curr)
+    const key = path.posix.join('/', rel.split(path.sep).join('/'))
     const [type, meta, third] = node
 
     if (type === 0) {
@@ -47,10 +48,18 @@ export async function pathToMap(dirPath: string) {
     } else if (type === 1) {
       map[key] = ['file', Buffer.from(third).toString('base64')]
     } else if (type === 2) {
-      map[key] = ['symlink', meta.target]
+      map[key] = ['symlink', normalizeLinkTarget(meta.target)]
     }
   }
 
   walk(rootNode, dirPath)
   return map
+}
+
+function normalizeLinkTarget(target: string) {
+  if (path.sep !== '/') {
+    const slice = /^[A-Za-z]:/.test(target) ? target.slice(2) : target
+    return slice.split(path.sep).join('/')
+  }
+  return target
 }

@@ -1,7 +1,6 @@
-import path from 'node:path'
 import isGlob from 'is-glob'
 import { toRegex } from 'glob-to-regex.js'
-import { isPlainObject } from './common.js'
+import { isPlainObject, resolveAbsPath } from './common.js'
 import type { VolumePathType, VolumePathEntry } from './volume.js'
 
 export type VolumeEntryType = Exclude<VolumePathType, 'other'> | 'any'
@@ -22,12 +21,11 @@ export type VolumeEntries =
 
 export type MatchRules = Map<string, MatchRule>
 
-export function createMatchRules(input: VolumeEntries, prefix?: string): MatchRules {
-  const basePrefix = resolvePrefix(prefix)
+export function createMatchRules(input: VolumeEntries, prefix = '/'): MatchRules {
   const rules: MatchRules = new Map()
 
   function addRule(path: string, opts?: VolumeEntryRecord) {
-    const entry = createMatchRule(path, basePrefix, opts)
+    const entry = createMatchRule(path, prefix, opts)
     rules.set(entry.identifier, entry)
   }
 
@@ -94,9 +92,7 @@ function createMatchRule(rawPath: string, prefix: string, config?: VolumeEntryRe
     throw new TypeError(`Expected entry count to be a positive integer, got \`${count}\``)
   }
 
-  const resolved = rawPath.startsWith('/')
-    ? path.posix.normalize(rawPath)
-    : path.posix.join(prefix, rawPath)
+  const resolved = resolveAbsPath(rawPath, prefix)
   const expType = type ?? 'any'
 
   if (isGlobLike(rawPath)) {
@@ -182,12 +178,6 @@ export function matchEntries(pathEntries: VolumePathEntry[], rules: MatchRules) 
     diff: { actual: actualDiff, expected: expectedDiff },
     matches: allMatches,
   }
-}
-
-function resolvePrefix(prefix?: string) {
-  if (!prefix) return '/'
-  const resolved = path.posix.resolve('/', prefix)
-  return resolved === '/' ? '/' : resolved.replace(/\/$/, '')
 }
 
 export function isGlobLike(value: string) {
