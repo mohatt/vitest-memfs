@@ -1,3 +1,18 @@
+# [1.3.0](https://github.com/mohatt/vitest-memfs/compare/v1.2.0...v1.3.0) (2025-09-29)
+
+
+### Bug Fixes
+
+* **toMatchVolume:** relative path resolution for JSON input ([96f3060](https://github.com/mohatt/vitest-memfs/commit/96f3060799a95473b91931189ba7872b5f0083a6))
+* **util:** fix non-posix path handling in `writeVolumeToDir` ([1e96682](https://github.com/mohatt/vitest-memfs/commit/1e96682acdad0ca5690ae8374014a44fe188f0c0))
+* **util:** normalize symlink targets and handle non-posix paths ([ab6f8a3](https://github.com/mohatt/vitest-memfs/commit/ab6f8a30a0eeaf31d1454df15e6f5bcbe12ae8f7))
+
+
+### Features
+
+* **compare:** add async-aware volume comparison with concurrency and deferred diffs ([1037910](https://github.com/mohatt/vitest-memfs/commit/103791096b45629542a6cbae7b4cb032d6cbf8cf))
+* **util:** add `FileHandle` helper APIs for streaming, hashing, and buffered diffs with async support ([4cbfeda](https://github.com/mohatt/vitest-memfs/commit/4cbfedad441328e3afb212060bd1e08f537aa5b0))
+
 # [1.2.0](https://github.com/mohatt/vitest-memfs/compare/v1.1.0...v1.2.0) (2025-09-25)
 
 
