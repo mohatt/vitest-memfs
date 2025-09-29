@@ -3,7 +3,7 @@ import { createMatcher, isPlainObject, resolvePrefix, resolveAbsPath } from '@/u
 import { volumeToMap } from '@/util/volume.js'
 import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
-export interface VolumeMatcherOptions extends VolumeCompareOptions<false> {
+export interface VolumeMatcherOptions<Async extends boolean> extends VolumeCompareOptions<Async> {
   prefix?: string
 }
 
@@ -12,7 +12,8 @@ declare module 'vitest' {
     /**
      * Assert that a memfs volume matches another volume or JSON input.
      */
-    toMatchVolume(expected: Volume | DirectoryJSON, options?: VolumeMatcherOptions): T
+    toMatchVolume(expected: Volume | DirectoryJSON, options: VolumeMatcherOptions<true>): Promise<T>
+    toMatchVolume(expected: Volume | DirectoryJSON, options?: VolumeMatcherOptions<false>): T
   }
 }
 
@@ -60,15 +61,18 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
 
   const cmp = new VolumeCompare(receivedMap, expectedMap, options)
   const result = cmp.compare()
-  if (result.pass === true) {
-    return {
-      pass: true,
-      message: () =>
-        isNot //
-          ? 'Expected volumes to not match, but they did'
-          : 'Volumes matched',
+  const handle = (res: Awaited<typeof result>) => {
+    if (res.pass === true) {
+      return {
+        pass: true,
+        message: () =>
+          isNot //
+            ? 'Expected volumes to not match, but they did'
+            : 'Volumes matched',
+      }
     }
+    return res
   }
 
-  return result
+  return result instanceof Promise ? result.then(handle) : handle(result)
 })

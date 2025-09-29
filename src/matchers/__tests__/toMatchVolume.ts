@@ -7,7 +7,7 @@ interface TestCase {
   name: string
   received: VolumeInput
   expected: VolumeInput
-  options?: VolumeMatcherOptions
+  options?: VolumeMatcherOptions<false>
   pass?: boolean
   not?: boolean
 }
@@ -336,6 +336,14 @@ describe('toMatchVolume()', () => {
     it.each(cases.normal)('$name', testRunnerInteg)
     it.only.each(cases.only)('$name', testRunnerInteg)
     it.skip.each(cases.skip)('$name', testRunnerInteg)
+
+    it('works correctly with async', async () => {
+      const a = makeVol({ '/foo.txt': 'hi' })
+      const b = makeVol({ '/foo.txt': 'hi' })
+      const result = expect(a).toMatchVolume(b, { async: true })
+      expect(result instanceof Promise).toBe(true)
+      await result
+    })
   })
 
   describe.concurrent('concurrent', () => {
