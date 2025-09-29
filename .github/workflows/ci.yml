@@ -8,8 +8,12 @@ on:
 jobs:
   tests:
     if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')) || github.event_name == 'pull_request' }}
-    name: Tests
-    runs-on: ubuntu-latest
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -39,13 +43,26 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Build npm package
-        run: mv "$(pnpm pack | tail -n 1)" pkg.tgz
+      - name: Build npm package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pnpm pack
+          tarball=$(ls -1 *.tgz)
+          mv "$tarball" pkg-${{ matrix.os }}.tgz
+
+      - name: Build npm package (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          pnpm pack
+          $pkg = Get-ChildItem -Filter *.tgz | Select-Object -First 1 -ExpandProperty Name
+          Rename-Item $pkg "pkg-${{ matrix.os }}.tgz"
 
       - name: Upload Test coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v5
 
       - uses: actions/upload-artifact@v4
         with:
-          name: npm-package
-          path: pkg.tgz
+          name: npm-package-${{ matrix.os }}
+          path: pkg-${{ matrix.os }}.tgz
