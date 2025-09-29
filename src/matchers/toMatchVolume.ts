@@ -1,5 +1,5 @@
 import { Volume, DirectoryJSON } from 'memfs'
-import { createMatcher, isPlainObject } from '@/util/common.js'
+import { createMatcher, isPlainObject, resolvePrefix, resolveAbsPath } from '@/util/common.js'
 import { volumeToMap } from '@/util/volume.js'
 import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
@@ -27,11 +27,19 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
     }
   }
 
+  const prefix = resolvePrefix(options?.prefix)
   let expectedVol: Volume
   if (expected instanceof Volume) {
     expectedVol = expected
   } else if (isPlainObject(expected)) {
-    expectedVol = Volume.fromJSON(expected)
+    let resolved = expected
+    if (prefix !== '/') {
+      resolved = {}
+      for (const key of Object.keys(expected)) {
+        resolved[resolveAbsPath(key, prefix)] = expected[key]
+      }
+    }
+    expectedVol = Volume.fromJSON(resolved)
   } else {
     throw new TypeError(
       `You must provide a memfs Volume instance or plain JSON object to ${utils.matcherHint(
@@ -47,7 +55,6 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
     }
   }
 
-  const prefix = options?.prefix ?? undefined
   const receivedMap = volumeToMap(received, { prefix })
   const expectedMap = volumeToMap(expectedVol, { prefix })
 

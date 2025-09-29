@@ -74,14 +74,15 @@
     "release": "semantic-release --no-ci",
     "release:inspect": "semantic-release --dry-run",
     "test": "vitest run",
+    "test:bench": "pnpm vitest bench --run",
     "test:coverage": "vitest run --coverage",
     "test:vfs": "cross-env USE_FS_MOCK=true vitest run vfs",
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {
     "glob-to-regex.js": "^1.0.0",
-    "is-glob": "4.0.0",
     "is-binary-path": "^3.0.0",
+    "is-glob": "4.0.0",
     "p-limit": "^7.0.0"
   },
   "devDependencies": {

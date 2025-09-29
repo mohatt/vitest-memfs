@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { vi, expect } from 'vitest'
 
 /**
@@ -8,6 +9,16 @@ import { vi, expect } from 'vitest'
  */
 export async function importActualFS() {
   return vi.importActual<typeof import('fs')>('fs')
+}
+
+export function resolvePrefix(prefix?: string) {
+  if (!prefix) return '/'
+  const resolved = path.posix.resolve('/', prefix)
+  return resolved === '/' ? '/' : resolved.replace(/\/$/, '')
+}
+
+export function resolveAbsPath(rawPath: string, prefix = '/') {
+  return rawPath.startsWith('/') ? path.posix.normalize(rawPath) : path.posix.join(prefix, rawPath)
 }
 
 export function isPlainObject(value: unknown): value is Record<string, any> {
