@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/mohatt/vitest-memfs/compare/v1.5.0...v1.5.1) (2025-09-30)
+
+
+### Performance Improvements
+
+* **util:** improve `FileHandle` API and refactor internals ([e586215](https://github.com/mohatt/vitest-memfs/commit/e5862159bc1efd396cc9828c6bfb6254bcbf0e10))
+
 # [1.5.0](https://github.com/mohatt/vitest-memfs/compare/v1.4.0...v1.5.0) (2025-09-30)
 
 
