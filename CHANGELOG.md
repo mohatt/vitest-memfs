@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/mohatt/vitest-memfs/compare/v1.4.0...v1.5.0) (2025-09-30)
+
+
+### Features
+
+* **util:** export utility functions and types under `/util` ([9eee9d6](https://github.com/mohatt/vitest-memfs/commit/9eee9d60ec6a5529b9c6a3e43f76dcbc22890564))
+
 # [1.4.0](https://github.com/mohatt/vitest-memfs/compare/v1.3.1...v1.4.0) (2025-09-30)
 
 
