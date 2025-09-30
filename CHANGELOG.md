@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/mohatt/vitest-memfs/compare/v1.3.1...v1.4.0) (2025-09-30)
+
+
+### Features
+
+* **compare:** add `ignore` option ([caa56a8](https://github.com/mohatt/vitest-memfs/commit/caa56a89c250f25e1240cddaace5a32fabeaa82d))
+
 ## [1.3.1](https://github.com/mohatt/vitest-memfs/compare/v1.3.0...v1.3.1) (2025-09-29)
 
 
