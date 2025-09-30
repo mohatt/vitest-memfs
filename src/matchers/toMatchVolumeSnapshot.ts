@@ -2,12 +2,12 @@ import path from 'path'
 import type { SnapshotUpdateState } from 'vitest'
 import { Volume } from 'memfs'
 import { createMatcher, importActualFS, resolvePrefix } from '@/util/common.js'
-import { readDirToMap, volumeToMap, writeVolumeToDir } from '@/util/volume.js'
+import { readDirToMap, volumeToMap, writeVolumeToDir, VolumeToMapOptions } from '@/util/volume.js'
 import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
-export interface VolumeSnapshotMatcherOptions extends VolumeCompareOptions<true> {
-  prefix?: string
-}
+export interface VolumeSnapshotMatcherOptions
+  extends VolumeCompareOptions<true>,
+    VolumeToMapOptions {}
 
 declare module 'vitest' {
   interface Matchers<T = any> {
@@ -79,12 +79,14 @@ export default createMatcher(
     }
 
     const prefix = resolvePrefix(options?.prefix)
+    const ignore = options?.ignore
     if (updateSnapshot === 'all' || (updateSnapshot !== 'none' && !hasSnapshot)) {
       await writeVolumeToDir(received, snapshotDirPath, {
         clear: true,
         withData: options?.contentMatch !== 'ignore' && options?.contentMatch !== 'ignore-files',
         concurrency: options?.concurrency ?? undefined,
         prefix,
+        ignore,
       })
       return {
         pass: updateSnapshotState(true),
@@ -100,7 +102,7 @@ export default createMatcher(
     }
 
     const expectedMap = await readDirToMap(snapshotDirPath, { prefix })
-    const receivedMap = volumeToMap(received, { prefix })
+    const receivedMap = volumeToMap(received, { prefix, ignore })
 
     const cmp = new VolumeCompare(receivedMap, expectedMap, { ...options, async: true })
     const result = await cmp.compare()

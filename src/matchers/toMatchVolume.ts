@@ -1,11 +1,11 @@
 import { Volume, DirectoryJSON } from 'memfs'
 import { createMatcher, isPlainObject, resolvePrefix, resolveAbsPath } from '@/util/common.js'
-import { volumeToMap } from '@/util/volume.js'
+import { volumeToMap, VolumeToMapOptions } from '@/util/volume.js'
 import { VolumeCompare, VolumeCompareOptions } from '@/util/volume-compare.js'
 
-export interface VolumeMatcherOptions<Async extends boolean> extends VolumeCompareOptions<Async> {
-  prefix?: string
-}
+export interface VolumeMatcherOptions<Async extends boolean>
+  extends VolumeCompareOptions<Async>,
+    VolumeToMapOptions {}
 
 declare module 'vitest' {
   interface Matchers<T = any> {
@@ -56,8 +56,9 @@ export default createMatcher('toMatchVolume', function (received, expected, opti
     }
   }
 
-  const receivedMap = volumeToMap(received, { prefix })
-  const expectedMap = volumeToMap(expectedVol, { prefix })
+  const ignore = options?.ignore
+  const receivedMap = volumeToMap(received, { prefix, ignore })
+  const expectedMap = volumeToMap(expectedVol, { prefix, ignore })
 
   const cmp = new VolumeCompare(receivedMap, expectedMap, options)
   const result = cmp.compare()

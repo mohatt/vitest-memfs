@@ -22,6 +22,8 @@ exports[`toMatchVolume() > integration > 'not: identical files' 1`] = `[Error: E
 
 exports[`toMatchVolume() > integration > 'respects contentMatch=ignore option (mismatch)' 1`] = `[Error: Found path type mismatch at \`/link.txt\`]`;
 
+exports[`toMatchVolume() > integration > 'respects ignore option (mismatch)' 1`] = `[Error: Directory structure didn’t match]`;
+
 exports[`toMatchVolume() > integration > 'respects listMatch=ignore-extra option (mismatch)' 1`] = `[Error: Volume is missing 1 expected file]`;
 
 exports[`toMatchVolume() > integration > 'respects listMatch=ignore-missing option (mismatch)' 1`] = `[Error: Volume has 1 unexpected file]`;
@@ -401,6 +403,62 @@ exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-symlinks option'
 `;
 
 exports[`toMatchVolume() > unit > 'respects contentMatch=ignore-symlinks option' > result-all 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore and prefix options' > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore and prefix options' > result-all 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore option (mismatch)' > result 1`] = `
+{
+  "actual": [
+    "/foo.txt",
+    "/src/index.ts",
+  ],
+  "expected": [
+    "/foo.txt",
+  ],
+  "message": "Directory structure didn’t match",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore option (mismatch)' > result-all 1`] = `
+{
+  "actual": {
+    "/foo.txt": {},
+    "/src/index.ts": File {},
+  },
+  "expected": {
+    "/foo.txt": {},
+  },
+  "message": "Found 1 unexpected path",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore option' > result 1`] = `
+{
+  "message": "Volumes matched",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolume() > unit > 'respects ignore option' > result-all 1`] = `
 {
   "message": "Volumes matched",
   "pass": true,

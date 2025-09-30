@@ -1,4 +1,5 @@
 import path from 'node:path'
+import isGlob from 'is-glob'
 import { vi, expect } from 'vitest'
 
 /**
@@ -23,6 +24,10 @@ export function resolveAbsPath(rawPath: string, prefix = '/') {
 
 export function isPlainObject(value: unknown): value is Record<string, any> {
   return Object.prototype.toString.call(value) === '[object Object]'
+}
+
+export function isGlobLike(value: string) {
+  return isGlob(value, { strict: false })
 }
 
 type MatchersObject = Parameters<(typeof expect)['extend']>[0]
