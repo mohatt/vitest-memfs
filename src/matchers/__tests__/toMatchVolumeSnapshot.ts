@@ -61,6 +61,41 @@ const newCases = makeTests<TestCase>([
     options: { prefix: '/src' },
     pass: true,
   },
+  {
+    name: 'respects ignore option',
+    received: { '/foo.txt': 'hi', '/ignored.log': 'ignored' },
+    options: { ignore: '/ignored.log' },
+    pass: true,
+  },
+  {
+    name: 'respects ignore option (glob)',
+    received: {
+      '/foo.txt': 'hi',
+      '/logs/bar.txt': 'hey',
+      '/logs/app.log': 'ignored',
+      '/logs/error.log': 'ignored',
+    },
+    options: { ignore: '/logs/*.log' },
+    pass: true,
+  },
+  {
+    name: 'respects ignore option (ignore-all)',
+    received: { '/logs/app.log': 'ignored', '/logs/error.log': 'ignored' },
+    options: { ignore: '/logs/*.log' },
+    pass: true,
+  },
+  {
+    name: 'respects ignore and prefix options',
+    received: {
+      '/src/foo.txt': 'hi',
+      '/src/bar.txt': 'hey',
+      '/src/main.log': 'hola',
+      '/app.log': 'ignored',
+      '/logs/error.log': 'ignored',
+    },
+    options: { prefix: '/src', ignore: ['bar.txt', '/logs/*.log', 'logs/*.log'] },
+    pass: true,
+  },
 ])
 
 const fixtureCases = makeTests<TestCase>([
@@ -98,17 +133,53 @@ const fixtureCases = makeTests<TestCase>([
   },
   {
     name: 'respects prefix option',
-    received: { '/src/foo.txt': 'hi', '/bar.txt': 'ignore-me' },
+    received: { '/src/foo.txt': 'hi', '/bar.txt': 'ignored' },
     expected: 'foo-dir',
     options: { prefix: '/src' },
     pass: true,
   },
   {
     name: 'respects prefix option (mismatch)',
-    received: { '/src/foo.txt': 'hiz', '/bar.txt': 'ignore-me' },
+    received: { '/src/foo.txt': 'hiz', '/bar.txt': 'ignored' },
     expected: 'foo-dir',
     options: { prefix: '/src' },
     pass: false,
+  },
+  {
+    name: 'respects ignore option',
+    received: { '/foo.txt': 'hi', '/ignored.log': 'ignored' },
+    expected: 'foo-dir',
+    options: { ignore: '/ignored.log' },
+    pass: true,
+  },
+  {
+    name: 'respects ignore option (mismatch)',
+    received: { '/foo.txt': 'hello', '/ignored.log': 'ignored' },
+    expected: 'foo-dir',
+    options: { ignore: '/ignored.log' },
+    pass: false,
+  },
+  {
+    name: 'respects ignore option (glob)',
+    received: { '/foo.txt': 'hi', '/logs/app.log': 'ignored' },
+    expected: 'foo-dir',
+    options: { ignore: '/logs/*.log' },
+    pass: true,
+  },
+  {
+    name: 'respects ignore and prefix options',
+    received: {
+      '/src/foo.txt': 'hi',
+      '/src/index.ts': 'ignored',
+      '/src/math/util.ts': 'ignored',
+      '/src/logs/error.log': 'ignored',
+      '/logs/app.log': 'ignored',
+      '/logs/error.log': 'ignored',
+      '/bar.txt': 'ignored',
+    },
+    expected: 'foo-dir',
+    options: { prefix: '/src', ignore: ['*.ts', 'math/util.ts', '/logs/*.log', 'logs/*.log'] },
+    pass: true,
   },
   {
     name: 'respects listMatch=ignore-extra option',

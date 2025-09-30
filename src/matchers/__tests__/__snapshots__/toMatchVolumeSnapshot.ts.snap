@@ -205,6 +205,109 @@ exports[`toMatchVolumeSnapshot() > unit > 'respects contentMatch=ignore option' 
 }
 `;
 
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore and prefix options' [fixture] > result 1`] = `
+{
+  "message": "Volume matched the snapshot at foo-dir",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore and prefix options' [new] > disk-snapshot 1`] = `
+{
+  "/foo.txt": [
+    "file",
+    "aGk=",
+  ],
+  "/main.log": [
+    "file",
+    "aG9sYQ==",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore and prefix options' [new] > result 1`] = `
+{
+  "message": "Created snapshot at respects-ignore-and-prefix-options",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option (glob)' [fixture] > result 1`] = `
+{
+  "message": "Volume matched the snapshot at foo-dir",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option (glob)' [new] > disk-snapshot 1`] = `
+{
+  "/foo.txt": [
+    "file",
+    "aGk=",
+  ],
+  "/logs/bar.txt": [
+    "file",
+    "aGV5",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option (glob)' [new] > result 1`] = `
+{
+  "message": "Created snapshot at respects-ignore-option-glob-",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option (ignore-all)' [new] > disk-snapshot 1`] = `
+{
+  "/": null,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option (ignore-all)' [new] > result 1`] = `
+{
+  "message": "Created snapshot at respects-ignore-option-ignore-all-",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option (mismatch)' [fixture] > result 1`] = `
+{
+  "actual": File {
+    "data": "hello",
+  },
+  "expected": File {
+    "data": "hi",
+  },
+  "message": "Found file content mismatch at \`/foo.txt\`",
+  "pass": false,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option' [fixture] > result 1`] = `
+{
+  "message": "Volume matched the snapshot at foo-dir",
+  "pass": true,
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option' [new] > disk-snapshot 1`] = `
+{
+  "/foo.txt": [
+    "file",
+    "aGk=",
+  ],
+}
+`;
+
+exports[`toMatchVolumeSnapshot() > unit > 'respects ignore option' [new] > result 1`] = `
+{
+  "message": "Created snapshot at respects-ignore-option",
+  "pass": true,
+}
+`;
+
 exports[`toMatchVolumeSnapshot() > unit > 'respects listMatch=ignore-extra option (mismatch)' [fixture] > result 1`] = `
 {
   "actual": [

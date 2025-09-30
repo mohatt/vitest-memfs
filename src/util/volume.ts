@@ -1,7 +1,8 @@
 import path from 'node:path'
 import pLimit from 'p-limit'
+import { toRegex } from 'glob-to-regex.js'
 import type { Volume } from 'memfs'
-import { importActualFS } from './common.js'
+import { importActualFS, resolveAbsPath, isGlobLike } from './common.js'
 import { FileHandle } from './file-handle.js'
 
 export type VolumeEntry =
@@ -13,19 +14,23 @@ export interface VolumeMap {
   [path: string]: VolumeEntry
 }
 
-interface VolumeToMapOptions {
+export interface VolumeToMapOptions {
   prefix?: string
+  ignore?: string | string[]
 }
 
 /**
  * Get a filename -> Buffer map from current volume.
  */
 export function volumeToMap(volume: Volume, options?: VolumeToMapOptions) {
-  const { prefix = '/' } = options ?? {}
+  const { prefix = '/', ignore } = options ?? {}
+  const shouldIgnore = createIgnoreMatcher(ignore, prefix)
   const map: VolumeMap = Object.create(null)
 
   function walk(curr: string) {
+    if (shouldIgnore(curr)) return
     const stats = volume.lstatSync(curr)
+
     if (stats.isDirectory()) {
       const list = volume.readdirSync(curr) as string[]
       if (list.length === 0) map[curr] = { kind: 'empty-dir' }
@@ -55,15 +60,17 @@ export interface ReadDirToMapOptions extends VolumeToMapOptions {
 
 export async function readDirToMap(targetDirPath: string, options?: ReadDirToMapOptions) {
   const fs = await importActualFS()
-  const { prefix = '/', concurrency = 48 } = options ?? {}
+  const { prefix = '/', ignore, concurrency = 48 } = options ?? {}
+  const shouldIgnore = createIgnoreMatcher(ignore, prefix)
   const map: VolumeMap = Object.create(null)
 
   const limit = pLimit(concurrency)
 
   async function walk(dirPath: string) {
     const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+    const key = normalizeRelative(targetDirPath, dirPath, prefix)
+    if (shouldIgnore(key)) return
     if (entries.length === 0) {
-      const key = normalizeRelative(targetDirPath, dirPath, prefix)
       map[key] = { kind: 'empty-dir' }
     }
 
@@ -71,6 +78,7 @@ export async function readDirToMap(targetDirPath: string, options?: ReadDirToMap
       entries.map(async (entry) => {
         const abs = path.join(dirPath, entry.name)
         const key = normalizeRelative(targetDirPath, abs, prefix)
+        if (shouldIgnore(key)) return
 
         if (entry.isDirectory()) {
           await walk(abs)
@@ -120,8 +128,8 @@ export async function writeVolumeToDir(
   options?: WriteVolumeToDirOptions,
 ) {
   const fs = await importActualFS()
-  const { prefix = '/', clear, withData = true, concurrency = 32 } = options ?? {}
-  const map = volumeToMap(volume, { prefix })
+  const { prefix = '/', ignore, clear, withData = true, concurrency = 32 } = options ?? {}
+  const map = volumeToMap(volume, { prefix, ignore })
 
   if (clear) {
     await fs.promises.rm(targetDirPath, { recursive: true, force: true })
@@ -152,6 +160,9 @@ export async function writeVolumeToDir(
       writeDirs.add(targetPath)
     }
   }
+
+  // we write the target dir even if the volume is empty
+  if (!writeDirs.size) writeDirs.add(targetDirPath)
 
   // ensure directories exist
   await Promise.all(Array.from(writeDirs).map((dir) => fs.promises.mkdir(dir, { recursive: true })))
@@ -198,4 +209,22 @@ export function scanVolumePaths(volume: Volume): VolumePathEntry[] {
   }
 
   return entries
+}
+
+function createIgnoreMatcher(ignore: string | string[] | undefined, prefix: string) {
+  if (!ignore || !ignore.length) return () => false
+  const patterns = Array.isArray(ignore) ? ignore : [ignore]
+  const exact = new Set<string>()
+  const regexes: RegExp[] = []
+
+  for (const pattern of patterns) {
+    const resolved = resolveAbsPath(pattern, prefix)
+    if (isGlobLike(pattern)) {
+      regexes.push(toRegex(resolved))
+    } else {
+      exact.add(resolved)
+    }
+  }
+
+  return (value: string) => exact.has(value) || regexes.some((regex) => regex.test(value))
 }

@@ -128,9 +128,9 @@ it('compares volumes', () => {
   expect(vol3).toMatchVolume({ '/src/bar.txt': 'world' }, { prefix: '/src' })
   // ✅ passes: only `/src/bar.txt` is compared
 
-  // listMatch: 'ignore-extra'
-  expect(vol3).toMatchVolume({ '/src/bar.txt': 'world' }, { listMatch: 'ignore-extra' })
-  // ✅ passes: ignore extra files in received volume
+  // ignore (exact path or glob)
+  expect(vol3).toMatchVolume({ '/foo.txt': 'hello' }, { ignore: 'src/*.txt' })
+  // ✅ passes: `/src/bar.txt` is skipped
 })
 ```
 
@@ -151,6 +151,9 @@ it('matches volume snapshot', async () => {
   const vol3 = Volume.fromJSON({ '/foo.txt': 'hello', '/src/bar.txt': 'world' })
   await expect(vol3).toMatchVolumeSnapshot('src-snap', { prefix: '/src' })
   // only files under `/src` are persisted/compared
+
+  await expect(vol3).toMatchVolumeSnapshot('src-snap-ignore', { ignore: '*.txt' })
+  // `/foo.txt` is skipped when writing or comparing the snapshot
 })
 ```
 
@@ -164,6 +167,7 @@ Both `toMatchVolume` and `toMatchVolumeSnapshot` support the same options:
 ```typescript
 interface VolumeMatcherOptions {
   prefix?: string
+  ignore?: string | string[]
   listMatch?: 'exact' | 'ignore-extra' | 'ignore-missing'
   contentMatch?: 'all' | 'ignore' | 'ignore-files' | 'ignore-symlinks'
   report?: 'first' | 'all'
@@ -174,13 +178,15 @@ interface VolumeMatcherOptions {
 
 - **prefix**
   - `subdirectory` → Limit comparisons to files under the given path (e.g. `/src`).
+- **ignore**
+  - Exclude paths that match a glob, exact path or array of them (e.g. `['/logs/*.log', '*.log']`).
 - **listMatch**
   - `exact` → directory contents must match exactly (default).
   - `ignore-extra` → extra files in the received volume are ignored.
   - `ignore-missing` → missing files in the received volume are ignored.
 - **contentMatch**
   - `all` → compare file contents and symlink targets (default).
-  - `ignore` → only check that paths and path types match. Useful if you don’t care about the actual contents.
+  - `ignore` → only check that paths and path types match and ignore the actual contents.
   - `ignore-files` → only ignore file content comparison.
   - `ignore-symlinks` → only ignore symlink target comparison.
 - **report**

@@ -200,6 +200,39 @@ const cases = makeTests<TestCase>([
     pass: true,
   },
   {
+    name: 'respects ignore option',
+    received: { '/foo.txt': 'hi', '/ignored.log': 'actual' },
+    expected: { '/foo.txt': 'hi', '/ignored.log': 'expected' },
+    options: { ignore: '/ignored.log' },
+    pass: true,
+  },
+  {
+    name: 'respects ignore option (mismatch)',
+    received: { '/foo.txt': 'hi', '/main.ts': 'ignored', '/src/index.ts': 'export {}' },
+    expected: { '/foo.txt': 'hi' },
+    options: { ignore: ['*.ts'] },
+    pass: false,
+  },
+  {
+    name: 'respects ignore and prefix options',
+    received: {
+      '/foo.txt': 'ignored',
+      '/logs/app.log': 'ignored',
+      '/logs/error.log': 'ignored',
+      '/tmp/cache/data.json': 'ignored',
+      '/src/foo.txt': 'hi',
+      '/src/index.ts': 'export {}',
+      '/src/utils/math.ts': 'export const add = () => {}',
+      '/src/styles.css': 'ignored {}',
+    },
+    expected: {
+      '/src/index.ts': 'export {}',
+      '/src/utils/math.ts': 'export const add = () => {}',
+    },
+    options: { prefix: '/src', ignore: ['foo.txt', '/logs/*.log', '*.css'] },
+    pass: true,
+  },
+  {
     name: 'binary files match',
     received: () => {
       const v = makeVol()
