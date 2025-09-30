@@ -14,7 +14,7 @@ export type FileCompareResult =
   | { text: boolean; buffer: [actual: Buffer, expected: Buffer] }
 
 const BUFFER_DIFF_THRESHOLD = 2.5 * 1024 * 1024 // 2.5 MB
-const SYNC_COMPARE_THRESHOLD = 16 * 1024 * 1024 // 16 MB
+const SYNC_THRESHOLD = 16 * 1024 * 1024 // 16 MB
 const STREAM_THRESHOLD = 32 * 1024 * 1024 // 32 MB
 
 /**
@@ -23,14 +23,36 @@ const STREAM_THRESHOLD = 32 * 1024 * 1024 // 32 MB
  * @internal
  */
 export class FileHandle {
-  private readonly fs: typeof import('fs')
+  /** Underlying fs implementation (Node `fs` or memfs `Volume`). */
+  readonly fs: typeof import('fs')
+  /** Absolute path of the wrapped file. */
   readonly path: string
-  size: number
+  private _size: number
 
+  /**
+   * @param fsLike Backing storage used for all I/O operations.
+   * @param fsPath Absolute path to the file within `fsLike`.
+   * @param size Initial byte length cache; kept in sync by mutating methods.
+   */
   constructor(fsLike: Volume | typeof import('fs'), fsPath: string, size: number) {
     this.fs = fsLike as any
     this.path = fsPath
-    this.size = size
+    this._size = size
+  }
+
+  /** Current byte length; used to pick comparison strategies. */
+  get size() {
+    return this._size
+  }
+
+  /** Returns `true` when the handle is backed by an in-memory volume. */
+  get isVirtual() {
+    return this.fs instanceof Volume
+  }
+
+  /** Indicates whether the handle is treated as text when building diffs. */
+  get isText() {
+    return !isBinaryPath(this.path)
   }
 
   /**
@@ -38,14 +60,17 @@ export class FileHandle {
    * signals. Returns `null` when contents match.
    */
   async compare(target: FileHandle, signal?: AbortSignal): Promise<FileCompareResult | null> {
-    const size = Math.max(this.size, target.size)
-    const text = isText(this.path)
+    const size = Math.max(this._size, target._size)
+    const text = this.isText
     if (size > STREAM_THRESHOLD) {
-      if (this.size !== target.size) {
-        return { text, size: [this.size, target.size] }
+      if (this._size !== target._size) {
+        return { text, size: [this._size, target._size] }
       }
 
-      const [actual, expected] = await Promise.all([this.makeHash(signal), target.makeHash(signal)])
+      const [actual, expected] = await Promise.all([
+        gracefulAbort(this.makeHash(signal), signal, ABORT_HASH),
+        gracefulAbort(target.makeHash(signal), signal, ABORT_HASH),
+      ])
       if (actual === ABORT_HASH || expected === ABORT_HASH) {
         // hash operation was aborted
         return { text, hash: makeAbortDiff(actual, expected) }
@@ -54,7 +79,10 @@ export class FileHandle {
       return actual === expected ? null : { text, hash: [actual, expected] }
     }
 
-    const [data, targetData] = await Promise.all([this.read(signal), target.read(signal)])
+    const [data, targetData] = await Promise.all([
+      gracefulAbort(this.read(signal), signal, ABORT_READ),
+      gracefulAbort(target.read(signal), signal, ABORT_READ),
+    ])
     if (data === ABORT_READ || targetData === ABORT_READ) {
       // read operation was aborted
       return this.makeDiff(...makeAbortDiff(data, targetData))
@@ -82,12 +110,12 @@ export class FileHandle {
    * sources. Updates the cached `size` after completion.
    */
   async replaceWith(target: FileHandle, signal?: AbortSignal) {
-    if (target.size > STREAM_THRESHOLD) {
+    if (target._size > STREAM_THRESHOLD) {
       const chunkSize = 512 * 1024
       const src = target.fs.createReadStream(target.path, { highWaterMark: chunkSize, signal })
       const dest = this.fs.createWriteStream(this.path, { highWaterMark: chunkSize, signal })
       await pipeline(src, dest)
-      this.size = target.size
+      this._size = target._size
       return
     }
 
@@ -96,27 +124,26 @@ export class FileHandle {
 
   /** Persist raw data to this handle and keep the cached size in sync. */
   async write(data: Buffer, signal?: AbortSignal) {
-    if (this.fs instanceof Volume) {
+    if (this.isVirtual) {
       this.fs.writeFileSync(this.path, data)
     } else {
       await this.fs.promises.writeFile(this.path, data, { signal })
     }
-    this.size = data.length
+    this._size = data.length
   }
 
-  private async read(signal?: AbortSignal): Promise<Buffer> {
-    return this.fs instanceof Volume
+  async read(signal?: AbortSignal): Promise<Buffer> {
+    return this.isVirtual
       ? // data is already in memory, no need for async here
         this.fs.readFileSync(this.path)
-      : gracefulAbort(this.fs.promises.readFile(this.path, { signal }), signal, ABORT_READ)
+      : this.fs.promises.readFile(this.path, { signal })
   }
 
-  private readSync(): Buffer {
-    if (this.size > SYNC_COMPARE_THRESHOLD) {
+  readSync(): Buffer {
+    if (this._size > SYNC_THRESHOLD) {
       throw new Error(
-        `compareSync(): File size exceeds sync threshold (${formatMB(SYNC_COMPARE_THRESHOLD)})\n` +
-          `- ${this.path}: ${formatMB(this.size)}\n` +
-          `Use { async: true } to enable async matching`,
+        `readSync(): File size exceeds sync threshold (${formatMB(SYNC_THRESHOLD)})\n` +
+          `- ${this.path}: ${formatMB(this._size)}`,
       )
     }
 
@@ -136,12 +163,6 @@ export class FileHandle {
         hash.update(chunk)
       }
       return hash.digest().toString('hex')
-    } catch (err) {
-      // graceful abort
-      if (err.name === 'AbortError') {
-        return ABORT_HASH
-      }
-      throw err
     } finally {
       stream.destroy()
     }
@@ -152,12 +173,12 @@ export class FileHandle {
     if (size > BUFFER_DIFF_THRESHOLD) {
       // if the file is too big, return hash diff
       return {
-        text: isText(this.path),
+        text: this.isText,
         hash: [this.makeHashSync(data), this.makeHashSync(targetData)],
       }
     }
 
-    const text = isText(this.path)
+    const text = this.isText
     const [actual, expected] = this.makeBufferDiff(data, targetData, text ? 128 : 64)
     return { text, buffer: [actual, expected] }
   }
@@ -183,10 +204,6 @@ export class FileHandle {
       targetData.subarray(start, Math.min(end, targetData.length)),
     ]
   }
-}
-
-function isText(filePath: string) {
-  return !isBinaryPath(filePath)
 }
 
 function formatMB(bytes: number) {

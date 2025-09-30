@@ -138,7 +138,7 @@ describe('FileHandle', () => {
       const received = makeVolHandle('/huge.bin', data)
       const expected = makeVolHandle('/huge.bin', data)
 
-      expect(() => received.compareSync(expected)).toThrow(/Use { async: true }/)
+      expect(() => received.compareSync(expected)).toThrow(/exceeds sync threshold/)
     })
   })
 
