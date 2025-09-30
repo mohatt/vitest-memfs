@@ -179,7 +179,7 @@ interface VolumeMatcherOptions {
 - **prefix**
   - `subdirectory` → Limit comparisons to files under the given path (e.g. `/src`).
 - **ignore**
-  - Exclude paths that match a glob, exact path or array of them (e.g. `['/logs/*.log', '*.log']`).
+  - Exclude paths that match a glob, exact path or array of them (e.g. `'**/*.log'`).
 - **listMatch**
   - `exact` → directory contents must match exactly (default).
   - `ignore-extra` → extra files in the received volume are ignored.

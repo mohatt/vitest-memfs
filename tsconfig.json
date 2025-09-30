@@ -15,8 +15,7 @@
     "skipLibCheck": true,
     "noImplicitReturns": true,
     "noUnusedParameters": true,
-    "strictBindCallApply": true,
-    "stripInternal": true
+    "strictBindCallApply": true
   },
   "include": ["src", "test"]
 }

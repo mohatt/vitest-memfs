@@ -5,22 +5,35 @@ import type { Volume } from 'memfs'
 import { importActualFS, resolveAbsPath, isGlobLike } from './common.js'
 import { FileHandle } from './file-handle.js'
 
+/**
+ * Normalized entry used by comparison helpers to describe a file system node.
+ * @internal
+ */
 export type VolumeEntry =
   | { kind: 'file'; file: FileHandle }
   | { kind: 'symlink'; target: string }
   | { kind: 'empty-dir' }
 
+/**
+ * Map of absolute POSIX paths to their corresponding volume entries.
+ * @internal
+ */
 export interface VolumeMap {
   [path: string]: VolumeEntry
 }
 
+/**
+ * Options that influence how a memfs volume is traversed.
+ */
 export interface VolumeToMapOptions {
   prefix?: string
   ignore?: string | string[]
 }
 
 /**
- * Get a filename -> Buffer map from current volume.
+ * Convert a memfs volume into a {@link VolumeMap}, walking from `prefix`
+ * and skipping any paths matched by `ignore` (strings or globs).
+ * @internal
  */
 export function volumeToMap(volume: Volume, options?: VolumeToMapOptions) {
   const { prefix = '/', ignore } = options ?? {}
@@ -54,10 +67,19 @@ export function volumeToMap(volume: Volume, options?: VolumeToMapOptions) {
   return map
 }
 
+/**
+ * Extends {@link VolumeToMapOptions} with knobs for host filesystem reads.
+ * @internal
+ */
 export interface ReadDirToMapOptions extends VolumeToMapOptions {
   concurrency?: number
 }
 
+/**
+ * Read a real directory into a {@link VolumeMap}, mirroring `volumeToMap`
+ * for the host filesystem with optional concurrency control.
+ * @internal
+ */
 export async function readDirToMap(targetDirPath: string, options?: ReadDirToMapOptions) {
   const fs = await importActualFS()
   const { prefix = '/', ignore, concurrency = 48 } = options ?? {}
@@ -116,12 +138,21 @@ function normalizeLinkTarget(target: string) {
   return target
 }
 
+/**
+ * Extends {@link VolumeToMapOptions} with controls for persisting volumes.
+ * @internal
+ */
 export interface WriteVolumeToDirOptions extends VolumeToMapOptions {
   clear?: boolean
   withData?: boolean
   concurrency?: number
 }
 
+/**
+ * Mirror a memfs volume on disk, optionally clearing the target,
+ * writing file contents, and throttling concurrent operations.
+ * @internal
+ */
 export async function writeVolumeToDir(
   volume: Volume,
   targetDirPath: string,
@@ -172,10 +203,23 @@ export async function writeVolumeToDir(
   await Promise.all(writeOps.map((op) => limit(op)))
 }
 
+/**
+ * Type of a memfs volume path, used by {@link scanVolumePaths}.
+ * @internal
+ */
 export type VolumePathType = 'file' | 'dir' | 'symlink' | 'other'
 
+/**
+ * Tuple of an absolute path and {@link VolumePathType} used by {@link scanVolumePaths}.
+ * @internal
+ */
 export type VolumePathEntry = [path: string, type: VolumePathType]
 
+/**
+ * Walk a volume breadth-first and return a flat list of `[path, type]` tuples
+ * that summarize its structure without loading file data.
+ * @internal
+ */
 export function scanVolumePaths(volume: Volume): VolumePathEntry[] {
   const entries: VolumePathEntry[] = []
   const stack = ['/']
@@ -211,6 +255,12 @@ export function scanVolumePaths(volume: Volume): VolumePathEntry[] {
   return entries
 }
 
+/**
+ * Build a predicate that reports whether a path should be skipped based on
+ * absolute or prefix-relative patterns (supporting glob syntax).
+ *
+ * **Note**: Negated globs are not supported.
+ */
 function createIgnoreMatcher(ignore: string | string[] | undefined, prefix: string) {
   if (!ignore || !ignore.length) return () => false
   const patterns = Array.isArray(ignore) ? ignore : [ignore]

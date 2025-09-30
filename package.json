@@ -46,6 +46,11 @@
       "require": "./dist/matchers/index.cjs",
       "import": "./dist/matchers/index.js"
     },
+    "./util": {
+      "types": "./dist/util.d.ts",
+      "require": "./dist/util.cjs",
+      "import": "./dist/util.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -54,6 +59,9 @@
     "*": {
       "matchers": [
         "./dist/matchers/index.d.ts"
+      ],
+      "util": [
+        "./dist/util.d.ts"
       ],
       "setup": [
         "./dist/setup.d.ts"

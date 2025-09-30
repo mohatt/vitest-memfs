@@ -3,6 +3,11 @@ import { createHash } from 'node:crypto'
 import { Volume } from 'memfs'
 import isBinaryPath from 'is-binary-path'
 
+/**
+ * Result payloads returned by {@link FileHandle.compare} when a
+ * mismatch is detected. When files match, `null` is returned instead.
+ * @internal
+ */
 export type FileCompareResult =
   | { text: boolean; hash: [actual: string, expected: string] }
   | { text: boolean; size: [actual: number, expected: number] }
@@ -13,8 +18,9 @@ const SYNC_COMPARE_THRESHOLD = 16 * 1024 * 1024 // 16 MB
 const STREAM_THRESHOLD = 32 * 1024 * 1024 // 32 MB
 
 /**
- * Utility around fs/memfs file access that tracks size and chooses between
- * buffered operations and streaming work for comparisons and copies.
+ * Lightweight wrapper over Node `fs` or `memfs` volumes that tracks size and
+ * abstracts comparison/copy logic with smart fallbacks (stream vs buffer).
+ * @internal
  */
 export class FileHandle {
   private readonly fs: typeof import('fs')
@@ -28,7 +34,8 @@ export class FileHandle {
   }
 
   /**
-   * Compare against another handle using async reads and hashing; obeys abort signals.
+   * Compare against another handle using async reads and hashing; obeys abort
+   * signals. Returns `null` when contents match.
    */
   async compare(target: FileHandle, signal?: AbortSignal): Promise<FileCompareResult | null> {
     const size = Math.max(this.size, target.size)
@@ -58,6 +65,7 @@ export class FileHandle {
 
   /**
    * Compare synchronously; throws if either file exceeds the sync threshold.
+   * Returns `null` when contents match.
    */
   compareSync(target: FileHandle): FileCompareResult | null {
     const data = this.readSync()
@@ -70,7 +78,8 @@ export class FileHandle {
   }
 
   /**
-   * Overwrite this file with data from another handle, streaming for large sources.
+   * Overwrite this file with data from another handle, streaming for large
+   * sources. Updates the cached `size` after completion.
    */
   async replaceWith(target: FileHandle, signal?: AbortSignal) {
     if (target.size > STREAM_THRESHOLD) {
@@ -85,9 +94,7 @@ export class FileHandle {
     return this.write(await target.read(signal), signal)
   }
 
-  /**
-   * Persist raw data to this handle and keep the cached size in sync.
-   */
+  /** Persist raw data to this handle and keep the cached size in sync. */
   async write(data: Buffer, signal?: AbortSignal) {
     if (this.fs instanceof Volume) {
       this.fs.writeFileSync(this.path, data)
@@ -194,7 +201,7 @@ async function gracefulAbort<R = void>(promise: Promise<R>, signal: AbortSignal,
   })
 }
 
-export function makeAbortDiff<T>(a: T, b: T): [T, T] {
+function makeAbortDiff<T>(a: T, b: T): [T, T] {
   if (a === b)
     return typeof b === 'string'
       ? [a, '__FILE_HANDLE_ABORT_HASH_2__' as T]
